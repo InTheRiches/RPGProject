@@ -9,7 +9,7 @@ import net.valor.rpgproject.players.RPGPlayer;
 
 public class ProgressiveHealthPotion extends HealthPotion {
     public ProgressiveHealthPotion(String id, String name, String description) {
-        super(id, name, description);
+        super("progressive-health", id, name, description);
     }
 
     /**

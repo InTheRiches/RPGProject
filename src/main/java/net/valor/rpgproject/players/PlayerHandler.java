@@ -33,8 +33,9 @@ public class PlayerHandler {
 
         int level = Database.getInstance().getLevel(player);
         int experience = Database.getInstance().getXP(player);
+        int coins = Database.getInstance().getCoins(player);
 
-        players.add(new RPGPlayer(player, level, experience));
+        players.add(new RPGPlayer(player, level, experience, coins));
     }
 
     public void removePlayer(Player player) {

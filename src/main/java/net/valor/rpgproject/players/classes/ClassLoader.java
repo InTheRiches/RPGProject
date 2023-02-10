@@ -1,5 +1,11 @@
 package net.valor.rpgproject.players.classes;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.bukkit.configuration.ConfigurationSection;
+
 import net.valor.rpgproject.RPGProject;
 
 public class ClassLoader {

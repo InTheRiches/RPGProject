@@ -5,7 +5,11 @@ import net.valor.rpgproject.players.RPGPlayer;
 public class HealthPotion extends Potion {
 
     public HealthPotion(String id, String name, String description) {
-        super(id, name, description);
+        super("health", id, name, description);
+    }
+
+    public HealthPotion(String type, String id, String name, String description) {
+        super(type, id, name, description);
     }
 
     public int getHealth(int tier) {
