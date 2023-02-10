@@ -13,11 +13,12 @@ public class RPGPlayer {
     private int health;
     private int coins;
 
-    public RPGPlayer(Player player, int level, int experience, int health) {
+    public RPGPlayer(Player player, int level, int experience, int health, int coins) {
         this.player = player;
         this.level = level;
         this.experience = experience;
         this.health = health;
+        this.coins = coins;
     }
 
     public Player getPlayer() {
@@ -34,6 +35,31 @@ public class RPGPlayer {
 
     public int getHealth() {
         return health;
+    }
+
+    public int getCoins() {
+        return coins;
+    }
+
+    public void addCoins(int coins) {
+        this.coins += coins;
+    }
+
+    public void removeCoins(int coins) {
+        this.coins -= coins;
+    }
+
+    public void removeHealth(int healthToRemove) {
+        // makes sure it doesnt go below 0
+        if (this.health - healthToRemove <= 0) {
+            this.health = 0;
+
+            // TODO MAKE PLAYER DIE
+            
+            return;
+        }
+
+        this.health -= healthToRemove;
     }
 
     public void addHealth(int healthToAdd) {
