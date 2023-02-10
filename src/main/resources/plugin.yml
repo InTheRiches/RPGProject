@@ -1,0 +1,5 @@
+name: RPGProject
+version: '${version}'
+main: net.valor.rpgproject.RPGProject
+api-version: 1.19
+authors: [ richesexe ]
