@@ -32,7 +32,7 @@ public class Database {
             throw new RuntimeException(e);
         }
 
-        db.createTable().table("PLAYERS").columns("id TEXT", "level INT", "xp INT").executeAsync();
+        db.createTable().table("PLAYERS").columns("id TEXT", "level INT", "xp INT", "health INT").executeAsync();
 
         try {
             db.getConnection().setAutoCommit(true);
@@ -62,16 +62,24 @@ public class Database {
         return blocks.get();
     }
 
-    public boolean doesPlayerExist(Player p) {
+    public int getHealth(Player player) {
+        AtomicInteger health = new AtomicInteger(0);
         try {
             var data = this.db.getData().table("PLAYERS")
-                    .columns("id")
-                    .where("id", p.getUniqueId().toString()).completeAsync();
-            return data.getObservable().count().blockingGet() > 0;
+                    .columns("id", "health")
+                    .where("id", player.getUniqueId().toString()).completeAsync();
+            data.getObservable().forEach(object -> {
+                try {
+                    String uuid = (String) object;
+                } catch (Exception e) {
+                    int value = (int) object;
+                    health.set(value);
+                }
+            });
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return false;
+        return health.get();
     }
 
     public int getXP(Player player) {
@@ -94,20 +102,37 @@ public class Database {
         return xp.get();
     }
 
-    public void setupPlayer(Player p) {
-        db.insertData().table("PLAYERS")
-                .insert("id", p.getUniqueId().toString())
-                .insert("level", 1)
-                .insert("xp", 0)
-                .executeAsync();
-    }
-
     public void setLevel(Player player, int level) {
         db.updateData().table("PLAYERS").where("id", player.getUniqueId().toString()).column("level", level).executeAsync();
     }
 
     public void setXP(Player player, int xp) {
         db.updateData().table("PLAYERS").where("id", player.getUniqueId().toString()).column("xp", xp).executeAsync();
+    }
+
+    public void setHealth(Player player, int health) {
+        db.updateData().table("PLAYERS").where("id", player.getUniqueId().toString()).column("health", health).executeAsync();
+    }
+
+    public boolean doesPlayerExist(Player p) {
+        try {
+            var data = this.db.getData().table("PLAYERS")
+                    .columns("id")
+                    .where("id", p.getUniqueId().toString()).completeAsync();
+            return data.getObservable().count().blockingGet() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public void setupPlayer(Player p) {
+        db.insertData().table("PLAYERS")
+                .insert("id", p.getUniqueId().toString())
+                .insert("level", 1)
+                .insert("xp", 0)
+                .insert("health", 20)
+                .executeAsync();
     }
 
     public static Database getInstance() {

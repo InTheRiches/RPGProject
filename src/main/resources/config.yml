@@ -1,0 +1,4 @@
+classes:
+  archer:
+    name: "Archer"
+    description: "Increase your archery skills."

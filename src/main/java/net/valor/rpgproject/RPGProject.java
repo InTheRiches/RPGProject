@@ -7,8 +7,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class RPGProject extends JavaPlugin {
 
+    private static RPGProject instance;
+
     @Override
     public void onEnable() {
+        instance = this;
+
         // Plugin startup logic
         initialize();
         registerCommands();
@@ -16,7 +20,12 @@ public final class RPGProject extends JavaPlugin {
     }
 
     private void initialize() {
-        new Database();
+        if (!(new File(getDataFolder(), "config.yml").exists()))
+            this.saveResource("config.yml", false);
+        
+        // load basic utilities
+        Database.getInstance();
+        ClassLoader.getInstance();
     }
 
     private void registerCommands() {
@@ -32,5 +41,9 @@ public final class RPGProject extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+    }
+
+    public static RPGProject getInstance() {
+        return instance;
     }
 }
