@@ -1,9 +1,14 @@
 package net.valor.rpgproject;
 
+import net.valor.rpgproject.commands.EXPCommand;
 import net.valor.rpgproject.commands.LevelCommand;
 import net.valor.rpgproject.players.PlayerListener;
+import net.valor.rpgproject.players.classes.ClassHandler;
+import net.valor.rpgproject.potions.PotionHandler;
 import net.valor.rpgproject.utils.Database;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.File;
 
 public final class RPGProject extends JavaPlugin {
 
@@ -25,12 +30,14 @@ public final class RPGProject extends JavaPlugin {
         
         // load basic utilities
         Database.getInstance();
-        ClassLoader.getInstance();
+        ClassHandler.getInstance();
+        PotionHandler.getInstance();
     }
 
     private void registerCommands() {
         // register commands
         new LevelCommand();
+        new EXPCommand();
     }
 
     private void registerListeners() {

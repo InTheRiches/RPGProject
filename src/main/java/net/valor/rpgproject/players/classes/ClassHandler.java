@@ -8,13 +8,13 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import net.valor.rpgproject.RPGProject;
 
-public class ClassLoader {
+public class ClassHandler {
 
-    private static ClassLoader instance;
+    private static ClassHandler instance;
 
     private final List<Class> classes;
 
-    public ClassLoader() {
+    public ClassHandler() {
         this.classes = new ArrayList<>();
 
         ConfigurationSection ms = RPGProject.getInstance().getConfig().getConfigurationSection("classes");
@@ -32,9 +32,9 @@ public class ClassLoader {
         return classes;
     }
 
-    public static ClassLoader getInstance() {
+    public static ClassHandler getInstance() {
         if (instance == null)
-            instance = new ClassLoader();
+            instance = new ClassHandler();
 
         return instance;
     }

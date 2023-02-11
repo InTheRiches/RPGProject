@@ -1,4 +1,4 @@
-package net.valor.rpgproject.potions;
+package net.valor.rpgproject.potions.types;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

@@ -1,5 +1,7 @@
 package net.valor.rpgproject.players;
 
+import net.valor.rpgproject.players.classes.Class;
+import net.valor.rpgproject.players.classes.ClassHandler;
 import net.valor.rpgproject.utils.Database;
 import org.bukkit.entity.Player;
 
@@ -31,11 +33,17 @@ public class PlayerHandler {
             Database.getInstance().setupPlayer(player);
         }
 
+        Optional<Class> playerClass = ClassHandler.getInstance().getClass(Database.getInstance().getClassID(player));
+        if (!playerClass.isPresent()) {
+            throw new IllegalStateException("Player class is not present for " + player.getUniqueId() + "!");
+        }
+
         int level = Database.getInstance().getLevel(player);
-        int experience = Database.getInstance().getXP(player);
+        int experience = Database.getInstance().getEXP(player);
+        int health = Database.getInstance().getHealth(player);
         int coins = Database.getInstance().getCoins(player);
 
-        players.add(new RPGPlayer(player, level, experience, coins));
+        players.add(new RPGPlayer(player, playerClass.get(), level, experience, health, coins));
     }
 
     public void removePlayer(Player player) {
@@ -43,7 +51,9 @@ public class PlayerHandler {
         players.remove(rpgPlayer);
 
         Database.getInstance().setLevel(player, rpgPlayer.getLevel());
-        Database.getInstance().setXP(player, rpgPlayer.getExperience());
+        Database.getInstance().setEXP(player, rpgPlayer.getExperience());
+        Database.getInstance().setHealth(player, rpgPlayer.getHealth());
+        Database.getInstance().setCoins(player, rpgPlayer.getCoins());
     }
 
     public Optional<RPGPlayer> getRPGPlayer(Player player) {

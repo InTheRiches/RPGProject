@@ -3,7 +3,6 @@ package net.valor.rpgproject.utils;
 import com.thepepeyt.databasehelper.DatabaseHelper;
 
 import java.sql.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.thepepeyt.databasehelper.database.AbstractSQLDatabase;
@@ -33,7 +32,7 @@ public class Database {
             throw new RuntimeException(e);
         }
 
-        db.createTable().table("PLAYERS").columns("id TEXT", "level INT", "xp INT", "health INT", "coins INT").executeAsync();
+        db.createTable().table("PLAYERS").columns("id TEXT", "class TEXT", "level INT", "exp INT", "health INT", "coins INT", "abilityPoints INT").executeAsync();
 
         try {
             db.getConnection().setAutoCommit(true);
@@ -73,12 +72,24 @@ public class Database {
         return (int) getPlayerValue(player, "health");
     }
 
-    public int getXP(Player player) {
-        return (int) getPlayerValue(player, "xp");
+    public int getEXP(Player player) {
+        return (int) getPlayerValue(player, "exp");
     }
 
     public int getCoins(Player player) {
         return (int) getPlayerValue(player, "coins");
+    }
+
+    public String getClassID(Player player) {
+        return (String) getPlayerValue(player, "class");
+    }
+
+    public int getAbilityPoints(Player player) {
+        return (int) getPlayerValue(player, "abilityPoints");
+    }
+
+    public void setClassID(Player player, String classID) {
+        db.updateData().table("PLAYERS").where("id", player.getUniqueId().toString()).column("class", classID).executeAsync();
     }
 
     public void setCoins(Player player, int coins) {
@@ -89,8 +100,8 @@ public class Database {
         db.updateData().table("PLAYERS").where("id", player.getUniqueId().toString()).column("level", level).executeAsync();
     }
 
-    public void setXP(Player player, int xp) {
-        db.updateData().table("PLAYERS").where("id", player.getUniqueId().toString()).column("xp", xp).executeAsync();
+    public void setEXP(Player player, int exp) {
+        db.updateData().table("PLAYERS").where("id", player.getUniqueId().toString()).column("exp", exp).executeAsync();
     }
 
     public void setHealth(Player player, int health) {
@@ -113,7 +124,7 @@ public class Database {
         db.insertData().table("PLAYERS")
                 .insert("id", p.getUniqueId().toString())
                 .insert("level", 1)
-                .insert("xp", 0)
+                .insert("exp", 0)
                 .insert("health", 20)
                 .insert("coins", 350)
                 .executeAsync();

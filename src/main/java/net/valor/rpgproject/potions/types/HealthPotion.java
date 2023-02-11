@@ -1,6 +1,7 @@
-package net.valor.rpgproject.potions;
+package net.valor.rpgproject.potions.types;
 
 import net.valor.rpgproject.players.RPGPlayer;
+import net.valor.rpgproject.potions.Potion;
 
 public class HealthPotion extends Potion {
 
