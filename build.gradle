@@ -24,6 +24,7 @@ repositories {
 
 dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.19.2-R0.1-SNAPSHOT'
+    compileOnly 'net.luckperms:api:5.4'
     compileOnly 'com.comphenix.protocol:ProtocolLib:4.7.0'
 
     implementation 'com.github.ThePepeYT:databasehelper:158c724802'

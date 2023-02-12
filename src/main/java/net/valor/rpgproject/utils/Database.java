@@ -144,7 +144,7 @@ public class Database {
                 .insert("coins", 350)
                 .insert("class", classID)
                 .insert("abilityPoints", 0)
-                .insert("resourceBag", BukkitSerialization.toBase64(new ItemStack[14])) // TODO REMEMBER TO CHANGE THIS WHEN THE RESOURCE BAG SIZE CHANGES
+                .insert("resourceBag", BukkitSerialization.toBase64(new ItemStack[28])) // TODO REMEMBER TO CHANGE THIS WHEN THE RESOURCE BAG SIZE CHANGES
                 .executeAsync();
     }
 

@@ -6,6 +6,8 @@ import com.comphenix.protocol.events.PacketContainer;
 import net.projektcontingency.titanium.gui.InventoryMenu;
 import net.valor.rpgproject.RPGProject;
 import net.valor.rpgproject.players.classes.Class;
+import net.valor.rpgproject.potions.ResourceBag;
+import net.valor.rpgproject.utils.Permissions;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -35,10 +37,10 @@ public class RPGPlayer {
     private int experience;
     private int health;
     private int coins;
-    private Class playerClass;
+    private final Class playerClass;
     private boolean disabled;
     // TODO IF IT OVERFILLS, SEND A ITEM CREATION PACKET TO PLAYER, AND THEN LISTEN FOR A ITEM PICKUP PACKET
-    private ItemStack[] resourceBag; // maximum size of 14 items
+    private ResourceBag resourceBag;
 
     public RPGPlayer(Player player, Class playerClass, int level, int experience, int health, int coins, ItemStack[] resourceBag) {
         this.player = player;
@@ -48,161 +50,16 @@ public class RPGPlayer {
         this.health = health;
         this.coins = coins;
         this.disabled = false;
-        this.resourceBag = resourceBag;
+        this.resourceBag = new ResourceBag(this, resourceBag);
 
         this.setup();
     }
 
     private void setup() {
-        ItemStack resourceBag = new ItemBuilder(Material.valueOf(RPGProject.getInstance().getConfig().getString("static-items.resource-bag.material")))
-                .setName(RPGProject.getInstance().getConfig().getString("static-items.resource-bag.name"))
-                .setLore(ChatColor.translateAlternateColorCodes('&', RPGProject.getInstance().getConfig().getString("static-items.resource-bag.lore")).split("\n"))
-                .setCustomModelData(RPGProject.getInstance().getConfig().getInt("static-items.resource-bag.custom-model-data"));
+        // look to see if the player has a 14, 21, or 28 size resource bag through permissions, and assign the size to a variable
 
-        // Open resource bag event.
-        new EventListener<>(RPGProject.getInstance(), InventoryClickEvent.class, (l, e) -> {
-            if (this.disabled) {
-                l.unregister();
-                return;
-            }
 
-            if (!player.getUniqueId().equals(this.player.getUniqueId())) return;
 
-            if (e.getView().getTitle().equals("Resource Bag") && (e.getAction().equals(InventoryAction.MOVE_TO_OTHER_INVENTORY) || e.getAction().equals(InventoryAction.PLACE_ALL) || e.getAction().equals(InventoryAction.PLACE_ONE) || e.getAction().equals(InventoryAction.PLACE_SOME))) {
-                e.setCancelled(true);
-
-                return;
-            }
-            if (e.getCurrentItem() == null || e.getCurrentItem().getItemMeta() == null) return;
-            if (!e.getCurrentItem().getType().equals(resourceBag.getType()) || e.getCurrentItem().getItemMeta().getCustomModelData() != RPGProject.getInstance().getConfig().getInt("static-items.resource-bag.custom-model-data")) return;
-
-            e.setCancelled(true);
-
-            Task.syncDelayed(this::openResourceBag);
-        });
-
-        // Close resource bag event
-        new EventListener<>(RPGProject.getInstance(), InventoryCloseEvent.class, (l, e) -> {
-            if (this.disabled) {
-                l.unregister();
-                return;
-            }
-
-            if (!player.getUniqueId().equals(this.player.getUniqueId())) return;
-            if (!e.getView().getTitle().equals("Resource Bag")) return;
-            if (e.getView().getCursor() == null) return;
-
-            // stop the cursor item from being added to the player's inventory.
-            e.getView().setCursor(null);
-        });
-
-        new EventListener<>(RPGProject.getInstance(), PlayerDropItemEvent.class, (l, e) -> {
-            if (disabled) {
-                l.unregister();
-                return;
-            }
-
-            if (!player.getUniqueId().equals(this.player.getUniqueId())) return;
-
-            // check if the item was any of the items inside the resource bag, if so remove it from the resource bag
-            ItemStack[] bag = this.resourceBag;
-            for (int i = 0, bagLength = bag.length; i < bagLength; i++) {
-                ItemStack item = bag[i];
-
-                if (item == null) continue;
-                if (item.isSimilar(e.getItemDrop().getItemStack())) {
-                    if (this.resourceBag[i].getAmount() - e.getItemDrop().getItemStack().getAmount() <= 0) {
-                        this.resourceBag[i] = null;
-                        return;
-                    }
-
-                    this.resourceBag[i].setAmount(this.resourceBag[i].getAmount() - e.getItemDrop().getItemStack().getAmount());
-                }
-            }
-        });
-
-        new EventListener<>(RPGProject.getInstance(), EntityPickupItemEvent.class, (l, e) -> {
-            System.out.println("EntityPickupItemEvent");
-            if (disabled) {
-                l.unregister();
-                return;
-            }
-
-            if (!(e.getEntity() instanceof Player player)) return;
-            if (!player.getUniqueId().equals(this.player.getUniqueId())) return;
-            if (e.getItem().getItemStack().getItemMeta() == null) return;
-
-            e.setCancelled(true);
-
-            for (String str : RPGProject.getInstance().getConfig().getStringList("resource-bag-pickup-items")) {
-                Material material = Material.valueOf(str.split(":")[0]);
-                int data = Integer.parseInt(str.split(":")[1]);
-
-                if (!e.getItem().getItemStack().getType().equals(material) || e.getItem().getItemStack().getItemMeta().getCustomModelData() != data) return;
-
-                // add the item to the resource bag
-                boolean foundSlot = false;
-
-                ItemStack[] bag = this.resourceBag;
-                for (int i = 0, bagLength = bag.length; i < bagLength; i++) {
-                    ItemStack item = bag[i];
-
-                    if (item == null) continue;
-
-                    if (item.isSimilar(e.getItem().getItemStack()) && this.resourceBag[i].getAmount() + e.getItem().getItemStack().getAmount() <= 64) {
-                        this.resourceBag[i].setAmount(this.resourceBag[i].getAmount() + e.getItem().getItemStack().getAmount());
-                        foundSlot = true;
-                        break;
-                    }
-                }
-
-                if (!foundSlot) {
-                    for (int i = 0, bagLength = bag.length; i < bagLength; i++) {
-                        ItemStack item = bag[i];
-
-                        if (item == null) {
-                            this.resourceBag[i] = e.getItem().getItemStack();
-                            foundSlot = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!foundSlot) {
-                    // TODO DROP THE ITEM
-                }
-            }
-
-            PacketContainer packet = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.COLLECT);
-            packet.getIntegers().write(0, e.getItem().getEntityId());
-            packet.getIntegers().write(1, this.player.getEntityId());
-            try {
-                ProtocolLibrary.getProtocolManager().sendServerPacket(this.player, packet);
-            } catch (InvocationTargetException ex) {
-                ex.printStackTrace();
-            }
-
-            e.getItem().remove();
-        });
-
-        this.player.getInventory().setItem(8, resourceBag);
-    }
-
-    public void openResourceBag() {
-        InventoryMenu menu = new InventoryMenu(18, "Resource Bag");
-
-        ItemStack[] bag = this.resourceBag;
-        for (int i = 0, bagLength = bag.length; i < bagLength; i++) {
-            ItemStack item = bag[i];
-
-            ItemButton button = ItemButton.create(item, (e) -> {
-                e.setCancelled(false);
-            });
-
-            menu.addButton(i, button);
-        }
-
-        menu.open(player);
     }
 
     public Player getPlayer() {
@@ -225,8 +82,12 @@ public class RPGPlayer {
         return coins;
     }
 
-    public ItemStack[] getResourceBag() {
+    public ResourceBag getResourceBag() {
         return resourceBag;
+    }
+
+    public boolean isDisabled() {
+        return disabled;
     }
 
     public Class getPlayerClass() {

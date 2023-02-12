@@ -63,7 +63,7 @@ public class PlayerHandler {
         Database.getInstance().setEXP(player, rpgPlayer.getExperience());
         Database.getInstance().setHealth(player, rpgPlayer.getHealth());
         Database.getInstance().setCoins(player, rpgPlayer.getCoins());
-        Database.getInstance().setResourceBag(player, rpgPlayer.getResourceBag());
+        Database.getInstance().setResourceBag(player, rpgPlayer.getResourceBag().getContents());
     }
 
     public Optional<RPGPlayer> getRPGPlayer(Player player) {
