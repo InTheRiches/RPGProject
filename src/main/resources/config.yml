@@ -3,6 +3,17 @@ potions:
     name: "Progressive Health Potion"
     description: "Slowly regenerates health."
     type: progressive-health
+
+static-items:
+  resource-bag:
+    name: "Resource Bag"
+    lore: "A bag full of resources."
+    material: "CHEST"
+    custom-model-data: 1
+
+resource-bag-pickup-items:
+  - "IRON_INGOT:1"
+
 classes:
   archer:
     name: "Archer"

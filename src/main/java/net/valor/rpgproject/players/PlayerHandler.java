@@ -4,7 +4,9 @@ import net.valor.rpgproject.players.classes.Class;
 import net.valor.rpgproject.players.classes.ClassHandler;
 import net.valor.rpgproject.utils.Database;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
+import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -29,21 +31,28 @@ public class PlayerHandler {
     }
 
     public void addPlayer(Player player) {
-        if (!Database.getInstance().doesPlayerExist(player)) {
-            Database.getInstance().setupPlayer(player);
-        }
-
         Optional<Class> playerClass = ClassHandler.getInstance().getClass(Database.getInstance().getClassID(player));
         if (!playerClass.isPresent()) {
-            throw new IllegalStateException("Player class is not present for " + player.getUniqueId() + "!");
+            throw new IllegalStateException("Player class '" + Database.getInstance().getClassID(player) + "' is not present for " + player.getUniqueId() + "!");
         }
 
         int level = Database.getInstance().getLevel(player);
         int experience = Database.getInstance().getEXP(player);
         int health = Database.getInstance().getHealth(player);
         int coins = Database.getInstance().getCoins(player);
+        ItemStack[] resourceBag = Database.getInstance().getResourceBag(player);
 
-        players.add(new RPGPlayer(player, playerClass.get(), level, experience, health, coins));
+        players.add(new RPGPlayer(player, playerClass.get(), level, experience, health, coins, resourceBag));
+    }
+
+    public void setupPlayer(Player player, String classID) {
+        if (getRPGPlayer(player).isPresent() || Database.getInstance().doesPlayerExist(player)) {
+            throw new IllegalStateException("Player is already in the player list!");
+        }
+
+        Database.getInstance().setupPlayer(player, classID);
+
+        addPlayer(player);
     }
 
     public void removePlayer(Player player) {
@@ -54,6 +63,7 @@ public class PlayerHandler {
         Database.getInstance().setEXP(player, rpgPlayer.getExperience());
         Database.getInstance().setHealth(player, rpgPlayer.getHealth());
         Database.getInstance().setCoins(player, rpgPlayer.getCoins());
+        Database.getInstance().setResourceBag(player, rpgPlayer.getResourceBag());
     }
 
     public Optional<RPGPlayer> getRPGPlayer(Player player) {

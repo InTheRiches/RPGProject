@@ -7,6 +7,7 @@ group = 'net.valor'
 version = 'A.01'
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven {
         name = 'spigotmc-repo'
@@ -18,12 +19,15 @@ repositories {
     }
     maven { url 'https://jitpack.io' }
     maven { url 'https://redempt.dev' }
+    maven { url "https://repo.dmulloy2.net/repository/public/" }
 }
 
 dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.19.2-R0.1-SNAPSHOT'
+    compileOnly 'com.comphenix.protocol:ProtocolLib:4.7.0'
 
     implementation 'com.github.ThePepeYT:databasehelper:158c724802'
+    implementation group: "com.github.InTheRiches", name: "Titanium", version: "A.02"
     implementation 'com.github.Redempt:RedLib:master'
     implementation "dev.jorel:commandapi-shade:8.7.0"
     implementation 'mysql:mysql-connector-java:8.0.26'

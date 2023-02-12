@@ -2,11 +2,14 @@ package net.valor.rpgproject.utils;
 
 import com.thepepeyt.databasehelper.DatabaseHelper;
 
+import java.io.IOException;
 import java.sql.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.thepepeyt.databasehelper.database.AbstractSQLDatabase;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * @author Projekt Valor
@@ -32,14 +35,13 @@ public class Database {
             throw new RuntimeException(e);
         }
 
-        db.createTable().table("PLAYERS").columns("id TEXT", "class TEXT", "level INT", "exp INT", "health INT", "coins INT", "abilityPoints INT").executeAsync();
+        db.createTable().table("PLAYERS").columns("id TEXT", "class TEXT", "level INT", "exp INT", "health INT", "coins INT", "abilityPoints INT", "resourceBag TEXT").executeAsync();
 
         try {
             db.getConnection().setAutoCommit(true);
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        System.out.println("Database successfully created");
     }
 
     public Object getPlayerValue(Player player, String valueID) {
@@ -49,13 +51,13 @@ public class Database {
             var data = this.db.getData().table("PLAYERS")
                     .columns("id", valueID)
                     .where("id", player.getUniqueId().toString()).completeAsync();
+
+            AtomicBoolean isFirst = new AtomicBoolean(true);
+
             data.getObservable().forEach(object -> {
-                try {
-                    String uuid = (String) object;
-                } catch (Exception e) {
-                    int value = (int) object;
-                    atomicObject.set(value);
-                }
+                if (isFirst.getAndSet(false)) return;
+
+                atomicObject.set(object);
             });
         } catch (Exception e) {
             e.printStackTrace();
@@ -88,6 +90,15 @@ public class Database {
         return (int) getPlayerValue(player, "abilityPoints");
     }
 
+    public ItemStack[] getResourceBag(Player player) {
+        String base64 = (String) getPlayerValue(player, "resourceBag");
+        try {
+            return BukkitSerialization.fromBase64(base64);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void setClassID(Player player, String classID) {
         db.updateData().table("PLAYERS").where("id", player.getUniqueId().toString()).column("class", classID).executeAsync();
     }
@@ -108,6 +119,10 @@ public class Database {
         db.updateData().table("PLAYERS").where("id", player.getUniqueId().toString()).column("health", health).executeAsync();
     }
 
+    public void setResourceBag(Player player, ItemStack[] resourceBag) {
+        db.updateData().table("PLAYERS").where("id", player.getUniqueId().toString()).column("resourceBag", BukkitSerialization.toBase64(resourceBag)).executeAsync();
+    }
+
     public boolean doesPlayerExist(Player p) {
         try {
             var data = this.db.getData().table("PLAYERS")
@@ -120,13 +135,16 @@ public class Database {
         return false;
     }
 
-    public void setupPlayer(Player p) {
+    public void setupPlayer(Player p, String classID) {
         db.insertData().table("PLAYERS")
                 .insert("id", p.getUniqueId().toString())
                 .insert("level", 1)
                 .insert("exp", 0)
                 .insert("health", 20)
                 .insert("coins", 350)
+                .insert("class", classID)
+                .insert("abilityPoints", 0)
+                .insert("resourceBag", BukkitSerialization.toBase64(new ItemStack[14])) // TODO REMEMBER TO CHANGE THIS WHEN THE RESOURCE BAG SIZE CHANGES
                 .executeAsync();
     }
 
