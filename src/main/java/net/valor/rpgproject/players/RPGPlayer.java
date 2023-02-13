@@ -215,8 +215,41 @@ public class RPGPlayer {
         this.level = level;
     }
 
-    public void addExperience(int experience) {
-        this.experience += experience;
+    /**
+     * Adds experience to the player
+     * 
+     * Levels 1 through 22
+     * 
+     * (y/(0.45-y/100))^2.15
+     * 
+     * Levels 23 - 35
+     *
+     * (y/0.23)^2.15
+     *
+     * Levels 36 - 100
+     *
+     * (y/0.95)^3
+     * 
+     * @param experienceToAdd the amount of experience to add
+     * @return the amount of experience that was not added
+     */
+
+    public void addExperience(int experienceToAdd) {
+        int experianceNeedForLevelUp = 0;
+        if (this.level <= 22) {
+            experianceNeedForLevelUp = (int) Math.pow((this.level / (0.45 - this.level / 100)), 2.15);
+        } else if (this.level <= 35) {
+            experianceNeedForLevelUp = (int) Math.pow((this.level / 0.23), 2.15);
+        } else {
+            experianceNeedForLevelUp = (int) Math.pow((this.level / 0.95), 3);
+        }
+        if (this.experience + experienceToAdd >= experianceNeedForLevelUp) {
+            this.level++;
+            this.experience = (this.experience + experienceToAdd) - experianceNeedForLevelUp;
+            return;
+        }
+
+        this.experience += experienceToAdd;
     }
 
     public void addLevel(int level) {
