@@ -6,18 +6,16 @@ import net.valor.rpgproject.armor.Armor;
 import net.valor.rpgproject.armor.ArmorLoader;
 import net.valor.rpgproject.players.classes.Class;
 import net.valor.rpgproject.potions.ResourceBag;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.inventory.InventoryAction;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import redempt.redlib.misc.EventListener;
 import redempt.redlib.misc.Task;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Projekt Valor
@@ -34,7 +32,7 @@ public class RPGPlayer {
     private boolean disabled;
     // TODO IF IT OVERFILLS, SEND A ITEM CREATION PACKET TO PLAYER, AND THEN LISTEN FOR A ITEM PICKUP PACKET
     private ResourceBag resourceBag;
-    private float armorRegenerationBuff;
+    private float regerationBuff;
 
     public RPGPlayer(Player player, Class playerClass, int level, int experience, float health, int coins, ItemStack[] resourceBag) {
         this.player = player;
@@ -52,7 +50,7 @@ public class RPGPlayer {
 
     public void refreshArmorBuffs() {
         int additionalArmorBuffs = 0;
-        this.armorRegenerationBuff = 0;
+        this.regerationBuff = 0;
 
         for (ItemStack item : this.player.getInventory().getArmorContents()) {
             if (item == null)
@@ -68,7 +66,7 @@ public class RPGPlayer {
 
             Armor armor = optionalArmor.get();
             additionalArmorBuffs += armor.getHealthBuff();
-            this.armorRegenerationBuff += armor.getRegenerationBuff();
+            this.regerationBuff += armor.getRegenerationBuff();
         }
 
         if (this.health >= this.maxHealth) {
@@ -79,6 +77,7 @@ public class RPGPlayer {
     }
 
     private void setup() {
+        AtomicLong lastImpacted = new AtomicLong(100000);
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -88,12 +87,10 @@ public class RPGPlayer {
                 }
 
                 // TODO MAKE SURE THEY HAVENT BEEN DAMAGED FOR 30s
+                if (System.currentTimeMillis() - lastImpacted.get() <= 30000 || !(health < maxHealth))
+                    return;
 
-                if (health < maxHealth) {
-                    addHealth((0.005f + armorRegenerationBuff) * maxHealth);
-                }
-
-                player.sendTitle(" ", ChatColor.RED + "" + health + " / " + maxHealth);
+                addHealth((0.005f + regerationBuff) * maxHealth);
             }
         }.runTaskTimerAsynchronously(RPGProject.getInstance(), 0, 20);
 
@@ -109,36 +106,6 @@ public class RPGPlayer {
             Task.syncDelayed(this::refreshArmorBuffs);
         });
 
-//        new EventListener<>(RPGProject.getInstance(), InventoryClickEvent.class, (l, e) -> {
-//            if (this.disabled) {
-//                l.unregister();
-//                return;
-//            }
-//
-//            if (e.getWhoClicked() != this.player)
-//                return;
-//
-//            if (e.getClickedInventory() == null)
-//                return;
-//
-//            if (!e.getClickedInventory().getType().equals(InventoryType.PLAYER))
-//                return;
-//
-//            System.out.println(e.getAction());
-//
-//            if (!e.getAction().equals(InventoryAction.PLACE_ALL) && !e.getAction().equals(InventoryAction.PLACE_ONE) && !e.getAction().equals(InventoryAction.PLACE_SOME) && !e.getAction().equals(InventoryAction.PICKUP_ALL) && !e.getAction().equals(InventoryAction.PICKUP_HALF) && !e.getAction().equals(InventoryAction.PICKUP_ONE) && !e.getAction().equals(InventoryAction.PICKUP_SOME) && !e.getAction().equals(InventoryAction.SWAP_WITH_CURSOR) && !e.getAction().equals(InventoryAction.MOVE_TO_OTHER_INVENTORY))
-//                return;
-//
-//            // check if the slot clicked was an equipment slot, 36-39
-//            if (e.getSlot() < 36 || e.getSlot() > 39)
-//                return;
-//
-//            System.out.println("armor slot clicked");
-//
-//            // refresh max health because the player equipped a new armor piece
-//            Task.syncDelayed(this::refreshArmorBuffs);
-//        });
-
         new EventListener<>(RPGProject.getInstance(), EntityDamageEvent.class, (l, e) -> {
             if (this.disabled) {
                 l.unregister();
@@ -151,6 +118,19 @@ public class RPGPlayer {
             this.removeHealth((float) e.getFinalDamage());
 
             e.setCancelled(true);
+        });
+
+        new EventListener<>(RPGProject.getInstance(), EntityDamageByEntityEvent.class, (l, e) -> {
+            if (this.disabled) {
+                l.unregister();
+                return;
+            }
+
+            if (e.getEntity() != this.player && e.getDamager() != this.player)
+                return;
+
+            // save this, so I can track how long ago they were damaged
+            lastImpacted.set(System.currentTimeMillis());
         });
     }
 
