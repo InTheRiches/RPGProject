@@ -1,8 +1,60 @@
+mysql:
+  host: "localhost"
+  port: 3306
+  username: 'root'
+  password: "root"
+  database: "rpgproject"
+
 potions:
   overtime-health:
     name: "Progressive Health Potion"
     description: "Slowly regenerates health."
     type: progressive-health
+    material: "POTION" # the plugin looks for items with this material
+    custom-model-data: 1 # and this custom model data
+
+armor:
+  iron-helmet:
+    health-buff: 10
+    regeneration-buff: 0.05
+    material: "IRON_HELMET" # the plugin looks for items with this material
+    custom-model-data: 1 # and this custom model data
+  iron-chestplate:
+    health-buff: 13
+    regeneration-buff: 0.05
+    material: "IRON_CHESTPLATE"
+    custom-model-data: 2
+  iron-leggings:
+    health-buff: 12
+    regeneration-buff: 0.05
+    material: "IRON_LEGGINGS"
+    custom-model-data: 3
+  iron-boots:
+    health-buff: 11
+    regeneration-buff: 0.05
+    material: "IRON_BOOTS"
+    custom-model-data: 4
+
+static-items:
+  resource-bag-14:
+    name: "Resource Bag"
+    lore: "A bag full of resources. Size 14"
+    material: "CHEST"
+    custom-model-data: 1
+  resource-bag-21:
+    name: "Resource Bag"
+    lore: "A bag full of resources. Size 21"
+    material: "CHEST"
+    custom-model-data: 2
+  resource-bag-28:
+    name: "Resource Bag"
+    lore: "A bag full of resources. Size 28"
+    material: "CHEST"
+    custom-model-data: 3
+
+resource-bag-pickup-items:
+  - "IRON_INGOT:1"
+
 classes:
   archer:
     name: "Archer"
