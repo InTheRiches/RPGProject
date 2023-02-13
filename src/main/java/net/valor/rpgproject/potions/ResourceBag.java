@@ -195,7 +195,7 @@ public class ResourceBag {
             verifyResourceBagItem();
         });
 
-        this.player.getPlayer().getInventory().setItem(8, resourceBagItem);
+        this.player.getPlayer().getInventory().setItem(13, resourceBagItem);
     }
 
     public void openResourceBag() {
@@ -253,6 +253,6 @@ public class ResourceBag {
                 .setLore(ChatColor.translateAlternateColorCodes('&', RPGProject.getInstance().getConfig().getString("static-items.resource-bag-" + size + ".lore")).split("\n"))
                 .setCustomModelData(RPGProject.getInstance().getConfig().getInt("static-items.resource-bag-" + size + ".custom-model-data"));
 
-        player.getPlayer().getInventory().setItem(8, resourceBagItem);
+        player.getPlayer().getInventory().setItem(13, resourceBagItem);
     }
 }

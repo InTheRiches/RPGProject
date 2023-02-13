@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.thepepeyt.databasehelper.database.AbstractSQLDatabase;
+import net.valor.rpgproject.RPGProject;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -22,11 +23,11 @@ public class Database {
 
     public Database() {
         db = DatabaseHelper.mySQLBuilder()
-                .user("root")
-                .password("root")
-                .host("localhost")
-                .port(3306)
-                .database("rpgproject")
+                .user(RPGProject.getInstance().getConfig().getString("mysql.username"))
+                .password(RPGProject.getInstance().getConfig().getString("mysql.password"))
+                .host(RPGProject.getInstance().getConfig().getString("mysql.host"))
+                .port(RPGProject.getInstance().getConfig().getInt("mysql.port"))
+                .database(RPGProject.getInstance().getConfig().getString("mysql.database"))
                 .build();
 
         try {
@@ -35,7 +36,7 @@ public class Database {
             throw new RuntimeException(e);
         }
 
-        db.createTable().table("PLAYERS").columns("id TEXT", "class TEXT", "level INT", "exp INT", "health INT", "coins INT", "abilityPoints INT", "resourceBag TEXT").executeAsync();
+        db.createTable().table("PLAYERS").columns("id TEXT", "class TEXT", "level INT", "exp INT", "health FLOAT", "coins INT", "abilityPoints INT", "resourceBag TEXT").executeAsync();
 
         try {
             db.getConnection().setAutoCommit(true);
@@ -115,7 +116,7 @@ public class Database {
         db.updateData().table("PLAYERS").where("id", player.getUniqueId().toString()).column("exp", exp).executeAsync();
     }
 
-    public void setHealth(Player player, int health) {
+    public void setHealth(Player player, float health) {
         db.updateData().table("PLAYERS").where("id", player.getUniqueId().toString()).column("health", health).executeAsync();
     }
 
@@ -140,7 +141,7 @@ public class Database {
                 .insert("id", p.getUniqueId().toString())
                 .insert("level", 1)
                 .insert("exp", 0)
-                .insert("health", 20)
+                .insert("health", 20.0f)
                 .insert("coins", 350)
                 .insert("class", classID)
                 .insert("abilityPoints", 0)

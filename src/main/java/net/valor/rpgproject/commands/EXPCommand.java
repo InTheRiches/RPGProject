@@ -28,7 +28,7 @@ public class EXPCommand {
                 .withSubcommand(addExpCommand)
                 .executesPlayer((sender, args) -> {
                     PlayerHandler.getInstance().getRPGPlayer(sender).ifPresent(rpgPlayer -> {
-                        sender.getWorld().dropItem(sender.getLocation(), new ItemBuilder(Material.IRON_INGOT).setCustomModelData(1));
+                        sender.getWorld().dropItem(sender.getLocation(), new ItemBuilder(Material.IRON_LEGGINGS).setCustomModelData(3));
                         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&aYour level is &e" + rpgPlayer.getLevel() + "&a and your experience is &e" + rpgPlayer.getExperience()));
                     });
                 })

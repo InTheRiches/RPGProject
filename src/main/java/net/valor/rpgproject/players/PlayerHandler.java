@@ -38,7 +38,7 @@ public class PlayerHandler {
 
         int level = Database.getInstance().getLevel(player);
         int experience = Database.getInstance().getEXP(player);
-        int health = Database.getInstance().getHealth(player);
+        float health = Database.getInstance().getHealth(player);
         int coins = Database.getInstance().getCoins(player);
         ItemStack[] resourceBag = Database.getInstance().getResourceBag(player);
 

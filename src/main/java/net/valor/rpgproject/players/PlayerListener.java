@@ -1,5 +1,6 @@
 package net.valor.rpgproject.players;
 
+import com.codingforcookies.armorequip.ArmorEquipEvent;
 import net.projektcontingency.titanium.gui.InventoryMenu;
 import net.valor.rpgproject.players.classes.Class;
 import net.valor.rpgproject.players.classes.ClassHandler;
