@@ -1,4 +1,4 @@
-package net.valor.rpgproject.potions;
+package net.valor.rpgproject.players;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
@@ -11,7 +11,6 @@ import net.luckperms.api.event.user.track.UserPromoteEvent;
 import net.projektcontingency.titanium.gui.InventoryMenu;
 import net.projektcontingency.titanium.items.ItemUtilities;
 import net.valor.rpgproject.RPGProject;
-import net.valor.rpgproject.players.RPGPlayer;
 import net.valor.rpgproject.utils.Permissions;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

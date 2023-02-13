@@ -1,16 +1,18 @@
 package net.valor.rpgproject.potions.types;
 
+import org.bukkit.Material;
+
 import net.valor.rpgproject.players.RPGPlayer;
 import net.valor.rpgproject.potions.Potion;
 
 public class HealthPotion extends Potion {
 
-    public HealthPotion(String id, String name, String description) {
-        super("health", id, name, description);
+    public HealthPotion(String id, Material materialType, int customModelData) {
+        super("health", id, materialType, customModelData);
     }
 
-    public HealthPotion(String type, String id, String name, String description) {
-        super(type, id, name, description);
+    public HealthPotion(String type, String id, Material materialType, int customModelData) {
+        super(type, id, materialType, customModelData);
     }
 
     public int getHealth(int tier) {

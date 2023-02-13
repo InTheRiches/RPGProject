@@ -2,14 +2,15 @@ package net.valor.rpgproject.potions.types;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.bukkit.Material;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import net.valor.rpgproject.RPGProject;
 import net.valor.rpgproject.players.RPGPlayer;
 
 public class ProgressiveHealthPotion extends HealthPotion {
-    public ProgressiveHealthPotion(String id, String name, String description) {
-        super("progressive-health", id, name, description);
+    public ProgressiveHealthPotion(String id, Material materialType, int customModelData) {
+        super("progressive-health", id, materialType, customModelData);
     }
 
     /**

@@ -5,10 +5,13 @@ import net.valor.rpgproject.RPGProject;
 import net.valor.rpgproject.armor.Armor;
 import net.valor.rpgproject.armor.ArmorLoader;
 import net.valor.rpgproject.players.classes.Class;
-import net.valor.rpgproject.potions.ResourceBag;
+import net.valor.rpgproject.potions.Potion;
+import net.valor.rpgproject.potions.PotionHandler;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import redempt.redlib.misc.EventListener;
@@ -104,6 +107,28 @@ public class RPGPlayer {
                 return;
 
             Task.syncDelayed(this::refreshArmorBuffs);
+        });
+
+        new EventListener<>(RPGProject.getInstance(), PlayerInteractEvent.class, (l, e) -> {
+            if (this.disabled) {
+                l.unregister();
+                return;
+            }
+
+            if (e.getPlayer() != this.player)
+                return;
+
+            if (e.getItem() == null)
+                return;
+
+            if (e.getItem().getItemMeta() == null)
+                return;
+
+            Optional<Potion> potionOptional = PotionHandler.getInstance().getPotion(e.getItem().getType(), e.getItem().getItemMeta().getCustomModelData());
+            if (potionOptional.isEmpty())
+                return;
+
+            potionOptional.get().use(this, 1);
         });
 
         new EventListener<>(RPGProject.getInstance(), EntityDamageEvent.class, (l, e) -> {

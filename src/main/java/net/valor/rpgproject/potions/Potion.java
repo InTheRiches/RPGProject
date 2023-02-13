@@ -1,5 +1,7 @@
 package net.valor.rpgproject.potions;
 
+import org.bukkit.Material;
+
 import net.valor.rpgproject.players.RPGPlayer;
 
 /**
@@ -11,14 +13,14 @@ import net.valor.rpgproject.players.RPGPlayer;
 public abstract class Potion {
     protected final String type;
     protected final String id;
-    protected final String name;
-    protected final String description;
+    protected final Material materialType;
+    protected final int customModelData;
 
-    public Potion(String type, String id, String name, String description) {
+    public Potion(String type, String id, Material materialType, int customModelData) {
         this.type = type;
         this.id = id;
-        this.name = name;
-        this.description = description;
+        this.materialType = materialType;
+        this.customModelData = customModelData;
     }
 
     public String getType() {
@@ -29,12 +31,12 @@ public abstract class Potion {
         return id;
     }
 
-    public String getName() {
-        return name;
+    public Material getMaterialType() {
+        return materialType;
     }
 
-    public String getDescription() {
-        return description;
+    public int getCustomModelData() {
+        return customModelData;
     }
 
     abstract public void use(RPGPlayer player, int tier);
