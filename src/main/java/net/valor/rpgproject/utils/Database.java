@@ -141,7 +141,7 @@ public class Database {
                 .insert("id", p.getUniqueId().toString())
                 .insert("level", 1)
                 .insert("exp", 0)
-                .insert("health", 20.0f)
+                .insert("health", 100.0f)
                 .insert("coins", 350)
                 .insert("class", classID)
                 .insert("abilityPoints", 0)

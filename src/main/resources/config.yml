@@ -6,9 +6,11 @@ mysql:
   database: "rpgproject"
 
 potions:
+  health:
+    type: health
+    material: "POTION"
+    custom-model-data: 2
   overtime-health:
-    name: "Progressive Health Potion"
-    description: "Slowly regenerates health."
     type: progressive-health
     material: "POTION" # the plugin looks for items with this material
     custom-model-data: 1 # and this custom model data

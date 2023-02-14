@@ -39,6 +39,7 @@ public class PlayerHandler {
         int level = Database.getInstance().getLevel(player);
         int experience = Database.getInstance().getEXP(player);
         float health = Database.getInstance().getHealth(player);
+        System.out.println("Loading: " + health);
         int coins = Database.getInstance().getCoins(player);
         ItemStack[] resourceBag = Database.getInstance().getResourceBag(player);
 
@@ -61,6 +62,7 @@ public class PlayerHandler {
 
         Database.getInstance().setLevel(player, rpgPlayer.getLevel());
         Database.getInstance().setEXP(player, rpgPlayer.getExperience());
+        System.out.println("Saving: " + rpgPlayer.getHealth());
         Database.getInstance().setHealth(player, rpgPlayer.getHealth());
         Database.getInstance().setCoins(player, rpgPlayer.getCoins());
         Database.getInstance().setResourceBag(player, rpgPlayer.getResourceBag().getContents());

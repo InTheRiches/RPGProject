@@ -8,10 +8,12 @@ import net.valor.rpgproject.players.classes.Class;
 import net.valor.rpgproject.potions.Potion;
 import net.valor.rpgproject.potions.PotionHandler;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import redempt.redlib.misc.EventListener;
@@ -54,6 +56,7 @@ public class RPGPlayer {
     public void refreshArmorBuffs() {
         int additionalArmorBuffs = 0;
         this.regerationBuff = 0;
+        this.maxHealth = 100;
 
         for (ItemStack item : this.player.getInventory().getArmorContents()) {
             if (item == null)
@@ -73,6 +76,7 @@ public class RPGPlayer {
         }
 
         if (this.health >= this.maxHealth) {
+            System.out.println(health + " >= " + maxHealth);
             this.health = 100 + additionalArmorBuffs;
         }
 
@@ -90,10 +94,12 @@ public class RPGPlayer {
                 }
 
                 // TODO MAKE SURE THEY HAVENT BEEN DAMAGED FOR 30s
-                if (System.currentTimeMillis() - lastImpacted.get() <= 30000 || !(health < maxHealth))
-                    return;
+//                if (System.currentTimeMillis() - lastImpacted.get() <= 30000 || !(health < maxHealth))
+//                    return;
+//
+//                addHealth((0.005f + regerationBuff) * maxHealth);
 
-                addHealth((0.005f + regerationBuff) * maxHealth);
+                player.sendTitle(" ", ChatColor.GREEN + "Health: " + ChatColor.WHITE + (int) health + ChatColor.GREEN + "/" + ChatColor.WHITE + maxHealth, 0, 20, 0);
             }
         }.runTaskTimerAsynchronously(RPGProject.getInstance(), 0, 20);
 
@@ -109,7 +115,7 @@ public class RPGPlayer {
             Task.syncDelayed(this::refreshArmorBuffs);
         });
 
-        new EventListener<>(RPGProject.getInstance(), PlayerInteractEvent.class, (l, e) -> {
+        new EventListener<>(RPGProject.getInstance(), PlayerItemConsumeEvent.class, (l, e) -> {
             if (this.disabled) {
                 l.unregister();
                 return;
@@ -118,17 +124,24 @@ public class RPGPlayer {
             if (e.getPlayer() != this.player)
                 return;
 
-            if (e.getItem() == null)
+            if (e.getItem().getItemMeta() == null)
                 return;
 
-            if (e.getItem().getItemMeta() == null)
+            if (!e.getItem().getItemMeta().hasCustomModelData())
                 return;
 
             Optional<Potion> potionOptional = PotionHandler.getInstance().getPotion(e.getItem().getType(), e.getItem().getItemMeta().getCustomModelData());
             if (potionOptional.isEmpty())
                 return;
 
-            potionOptional.get().use(this, 1);
+            int tier = 1;
+            // if the item is tier 1, its name will contain T1, if its tier 2, it will contain T2, etc.
+            if (e.getItem().getItemMeta().getDisplayName().contains("T2"))
+                tier = 2;
+            else if (e.getItem().getItemMeta().getDisplayName().contains("T3"))
+                tier = 3;
+
+            potionOptional.get().use(this, tier);
         });
 
         new EventListener<>(RPGProject.getInstance(), EntityDamageEvent.class, (l, e) -> {
