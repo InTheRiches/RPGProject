@@ -10,10 +10,22 @@ potions:
     type: health
     material: "POTION"
     custom-model-data: 2
+    tier-1-buff: 50 # this is the total amount healed
+    tier-2-buff: 100
+    tier-3-buff: 150
   overtime-health:
     type: progressive-health
     material: "POTION" # the plugin looks for items with this material
     custom-model-data: 1 # and this custom model data
+    tier-1:
+      duration: 10 # this is the duration in seconds of the buff
+      buff: 50 # this is the total amount healed
+    tier-2:
+      duration: 20
+      buff: 100
+    tier-3:
+      duration: 30
+      buff: 150
 
 armor:
   iron-helmet:

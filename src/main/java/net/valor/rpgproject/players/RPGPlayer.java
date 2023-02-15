@@ -142,6 +142,9 @@ public class RPGPlayer {
                 tier = 3;
 
             potionOptional.get().use(this, tier);
+
+            e.setCancelled(true);
+            // remove bottle if it has 0 uses left
         });
 
         new EventListener<>(RPGProject.getInstance(), EntityDamageEvent.class, (l, e) -> {

@@ -8,9 +8,19 @@ import org.bukkit.scheduler.BukkitRunnable;
 import net.valor.rpgproject.RPGProject;
 import net.valor.rpgproject.players.RPGPlayer;
 
+// TODO CONSIDER MAKING A PROGRESSIVEPOTION CLASS THAT EXTENDS POTION
 public class ProgressiveHealthPotion extends HealthPotion {
-    public ProgressiveHealthPotion(String id, Material materialType, int customModelData) {
-        super("progressive-health", id, materialType, customModelData);
+
+    private final int tier1Duration;
+    private final int tier2Duration;
+    private final int tier3Duration;
+
+    public ProgressiveHealthPotion(String id, Material materialType, int customModelData, int tier1Buff, int tier2Buff, int tier3Buff, int tier1Duration, int tier2Duration, int tier3Duration) {
+        super("progressive-health", id, materialType, customModelData, tier1Buff, tier2Buff, tier3Buff);
+
+        this.tier1Duration = tier1Duration;
+        this.tier2Duration = tier2Duration;
+        this.tier3Duration = tier3Duration;
     }
 
     /**
@@ -20,16 +30,12 @@ public class ProgressiveHealthPotion extends HealthPotion {
      * @return The amount of time required to heal in seconds.
      */
     public int getHealTime(int tier) {
-        switch (tier) {
-            case 1:
-                return 3;
-            case 2:
-                return 10;
-            case 3:
-                return 25;
-            default:
-                return 0;
-        }
+        return switch (tier) {
+            case 1 -> tier1Duration;
+            case 2 -> tier2Duration;
+            case 3 -> tier3Duration;
+            default -> 0;
+        };
     }
 
     public void use(RPGPlayer player, int tier) {
