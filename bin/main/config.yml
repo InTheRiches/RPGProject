@@ -6,12 +6,50 @@ mysql:
   database: "rpgproject"
 
 potions:
+  health:
+    type: health
+    material: "POTION"
+    custom-model-data: 2
+    tier-1:
+      min-buff: 6
+      max-buff: 14
+      min-uses: 7
+      max-uses: 15
+    tier-2:
+      min-buff: 20
+      max-buff: 55
+      min-uses: 3
+      max-uses: 10
+    tier-3:
+      min-buff: 80
+      max-buff: 150
+      min-uses: 3
+      max-uses: 10
   overtime-health:
-    name: "Progressive Health Potion"
-    description: "Slowly regenerates health."
     type: progressive-health
     material: "POTION" # the plugin looks for items with this material
     custom-model-data: 1 # and this custom model data
+    tier-1:
+      min-duration: 3 # this is the duration in seconds of the buff
+      max-duration: 3
+      min-buff: 6
+      max-buff: 14
+      min-uses: 3
+      max-uses: 10
+    tier-2:
+      min-duration: 2
+      max-duration: 3
+      min-buff: 20
+      max-buff: 55
+      min-uses: 3
+      max-uses: 10
+    tier-3:
+      min-duration: 1
+      max-duration: 2
+      min-buff: 80
+      max-buff: 150
+      min-uses: 3
+      max-uses: 10
 
 armor:
   iron-helmet:

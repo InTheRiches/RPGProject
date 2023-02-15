@@ -9,17 +9,22 @@ import net.valor.rpgproject.potions.Potion;
 import net.valor.rpgproject.potions.PotionHandler;
 
 import org.bukkit.ChatColor;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import redempt.redlib.misc.EventListener;
 import redempt.redlib.misc.Task;
 
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -143,6 +148,14 @@ public class RPGPlayer {
 
             potionOptional.get().use(this, tier);
 
+            NamespacedKey key = new NamespacedKey(RPGProject.getInstance(), "our-custom-key");
+            ItemMeta itemMeta = itemStack.getItemMeta();
+            PersistentDataContainer container = itemMeta.getPersistentDataContainer();
+
+            if(container.has(key , PersistentDataType.INTEGER)) {
+                int foundValue = container.get(key, PersistentDataType.INTEGER);
+            }
+
             e.setCancelled(true);
             // remove bottle if it has 0 uses left
         });
@@ -172,6 +185,50 @@ public class RPGPlayer {
 
             // save this, so I can track how long ago they were damaged
             lastImpacted.set(System.currentTimeMillis());
+        });
+
+        new EventListener<>(RPGProject.getInstance(), EntityPickupItemEvent.class, (l, e) -> {
+            if (this.disabled) {
+                l.unregister();
+                return;
+            }
+
+            if (e.getEntity() != this.player)
+                return;
+
+            if (e.getItem().getItemStack().getItemMeta() == null)
+                return;
+            
+            if (!e.getItem().getItemStack().getItemMeta().hasCustomModelData())
+                return;
+            
+            Optional<Potion> potionOptional = PotionHandler.getInstance().getPotion(e.getItem().getItemStack().getType(), e.getItem().getItemStack().getItemMeta().getCustomModelData());
+            if (potionOptional.isEmpty())
+                return;
+
+            int tier = 1;
+            // if the item is tier 1, its name will contain T1, if its tier 2, it will contain T2, etc.
+            if (e.getItem().getItemStack().getItemMeta().getDisplayName().contains("T2"))
+                tier = 2;
+            else if (e.getItem().getItemStack().getItemMeta().getDisplayName().contains("T3"))
+                tier = 3;
+
+            int uses = ThreadLocalRandom.current().nextInt(RPGProject.getInstance().getConfig().getInt("potions." + potionOptional.get().getId() + ".tier-" + tier + ".min-uses"), RPGProject.getInstance().getConfig().getInt("potions." + potionOptional.get().getId() + ".tier-" + tier + ".max-uses") + 1);
+
+            int amountBuffed = ThreadLocalRandom.current().nextInt(RPGProject.getInstance().getConfig().getInt("potions." + potionOptional.get().getId() + ".tier-" + tier + ".min-buff"), RPGProject.getInstance().getConfig().getInt("potions." + potionOptional.get().getId() + ".tier-" + tier + ".max-buff") + 1);
+
+            NamespacedKey usesKey = new NamespacedKey(RPGProject.getInstance(), "uses");
+            ItemMeta itemMeta = e.getItem().getItemStack().getItemMeta();
+            itemMeta.getPersistentDataContainer().set(usesKey, PersistentDataType.INTEGER, uses);
+
+            if (potionOptional.get().getId().contains("progressive")) {
+                NamespacedKey durationKey = new NamespacedKey(RPGProject.getInstance(), "duration");
+                int duration = ThreadLocalRandom.current().nextInt(RPGProject.getInstance().getConfig().getInt("potions." + potionOptional.get().getId() + ".tier-" + tier + ".min-duration"), RPGProject.getInstance().getConfig().getInt("potions." + potionOptional.get().getId() + ".tier-" + tier + ".max-duration") + 1);
+
+                itemMeta.getPersistentDataContainer().set(durationKey, PersistentDataType.INTEGER, duration);
+            }
+
+            e.getItem().getItemStack().setItemMeta(itemMeta);
         });
     }
 

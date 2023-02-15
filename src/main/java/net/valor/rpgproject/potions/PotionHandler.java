@@ -24,9 +24,9 @@ public class PotionHandler {
         for (String str : ms.getKeys(false)) {
             switch(ms.getString(str + ".type")) {
                 case "health" ->
-                        potions.add(new HealthPotion(str, Material.valueOf(ms.getString(str + ".material")), ms.getInt(str + ".custom-model-data"), ms.getInt(str + ".tier-1-buff"), ms.getInt(str + ".tier-2-buff"), ms.getInt(str + ".tier-3-buff")));
+                        potions.add(new HealthPotion(str, Material.valueOf(ms.getString(str + ".material")), ms.getInt(str + ".custom-model-data")));
                 case "progressive-health" ->
-                        potions.add(new ProgressiveHealthPotion(str, Material.valueOf(ms.getString(str + ".material")), ms.getInt(str + ".custom-model-data"), ms.getInt(str + ".tier-1.buff"), ms.getInt(str + ".tier-2.buff"), ms.getInt(str + ".tier-3.buff"), ms.getInt(str + ".tier-1.duration"), ms.getInt(str + ".tier-2.duration"), ms.getInt(str + ".tier-3.duration")));
+                        potions.add(new ProgressiveHealthPotion(str, Material.valueOf(ms.getString(str + ".material")), ms.getInt(str + ".custom-model-data")));
                 default ->
                     throw new IllegalStateException("Unexpected value: " + ms.getString(str + ".type"));
             }
