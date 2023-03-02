@@ -1,6 +1,7 @@
 package net.valor.rpgproject.players;
 
 import com.codingforcookies.armorequip.ArmorEquipEvent;
+import net.projektcontingency.titanium.items.ItemConstructor;
 import net.valor.rpgproject.RPGProject;
 import net.valor.rpgproject.armor.Armor;
 import net.valor.rpgproject.armor.ArmorLoader;
@@ -8,24 +9,31 @@ import net.valor.rpgproject.players.classes.Class;
 import net.valor.rpgproject.potions.Potion;
 import net.valor.rpgproject.potions.PotionHandler;
 
+import net.valor.rpgproject.potions.ProgressivePotion;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
+import redempt.redlib.itemutils.ItemBuilder;
 import redempt.redlib.misc.EventListener;
 import redempt.redlib.misc.Task;
 
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 /**
  * @author Projekt Valor
@@ -98,11 +106,10 @@ public class RPGPlayer {
                     return;
                 }
 
-                // TODO MAKE SURE THEY HAVENT BEEN DAMAGED FOR 30s
-//                if (System.currentTimeMillis() - lastImpacted.get() <= 30000 || !(health < maxHealth))
-//                    return;
-//
-//                addHealth((0.005f + regerationBuff) * maxHealth);
+                if (System.currentTimeMillis() - lastImpacted.get() <= 30000 || !(health < maxHealth))
+                    return;
+
+                addHealth((0.005f + regerationBuff) * maxHealth);
 
                 player.sendTitle(" ", ChatColor.GREEN + "Health: " + ChatColor.WHITE + (int) health + ChatColor.GREEN + "/" + ChatColor.WHITE + maxHealth, 0, 20, 0);
             }
@@ -136,28 +143,56 @@ public class RPGPlayer {
                 return;
 
             Optional<Potion> potionOptional = PotionHandler.getInstance().getPotion(e.getItem().getType(), e.getItem().getItemMeta().getCustomModelData());
-            if (potionOptional.isEmpty())
+            Optional<ProgressivePotion> progressivePotionOptional = PotionHandler.getInstance().getProgressivePotion(e.getItem().getType(), e.getItem().getItemMeta().getCustomModelData());
+            if (potionOptional.isEmpty() && progressivePotionOptional.isEmpty())
                 return;
 
-            int tier = 1;
-            // if the item is tier 1, its name will contain T1, if its tier 2, it will contain T2, etc.
-            if (e.getItem().getItemMeta().getDisplayName().contains("T2"))
-                tier = 2;
-            else if (e.getItem().getItemMeta().getDisplayName().contains("T3"))
-                tier = 3;
+            NamespacedKey amountBuffedKey = new NamespacedKey(RPGProject.getInstance(), "amount-buffed");
+            NamespacedKey usesKey = new NamespacedKey(RPGProject.getInstance(), "uses");
+            NamespacedKey durationKey = new NamespacedKey(RPGProject.getInstance(), "duration");
 
-            potionOptional.get().use(this, tier);
-
-            NamespacedKey key = new NamespacedKey(RPGProject.getInstance(), "our-custom-key");
-            ItemMeta itemMeta = itemStack.getItemMeta();
+            ItemStack clone = e.getItem().clone();
+            ItemMeta itemMeta = clone.getItemMeta();
             PersistentDataContainer container = itemMeta.getPersistentDataContainer();
 
-            if(container.has(key , PersistentDataType.INTEGER)) {
-                int foundValue = container.get(key, PersistentDataType.INTEGER);
+            int amountBuffed = 0;
+            int uses = 0;
+
+            if(container.has(amountBuffedKey , PersistentDataType.INTEGER)) {
+                amountBuffed = container.get(amountBuffedKey, PersistentDataType.INTEGER);
+            }
+            if (container.has(usesKey, PersistentDataType.INTEGER)) {
+                uses = container.get(usesKey, PersistentDataType.INTEGER);
             }
 
+            if (progressivePotionOptional.isPresent() && container.has(durationKey, PersistentDataType.INTEGER)) {
+                progressivePotionOptional.get().use(this, container.get(durationKey, PersistentDataType.INTEGER), amountBuffed);
+            }
+            else
+                potionOptional.get().use(this, amountBuffed);
+
+            uses--;
+
+            if (uses <= 0) {
+                e.getPlayer().getInventory().remove(e.getItem());
+                e.setCancelled(true);
+                return;
+            }
+            else {
+                container.set(usesKey, PersistentDataType.INTEGER, uses);
+            }
+
+            itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', RPGProject.getInstance().getConfig().getString("potions." + potionOptional.get().getId() + ".title").replaceAll("%buff%", String.valueOf(amountBuffed)).replaceAll("%duration%", String.valueOf(amountBuffed)).replaceAll("%uses%", String.valueOf(uses)).replaceAll("%tier%", itemMeta.getPersistentDataContainer().get(new NamespacedKey(RPGProject.getInstance(), "tier"), PersistentDataType.STRING))));
+            int finalAmountBuffed = amountBuffed;
+            int finalUses = uses;
+
+            itemMeta.setLore(RPGProject.getInstance().getConfig().getStringList("potions." + potionOptional.get().getId() + ".lore").stream().map(s -> ChatColor.translateAlternateColorCodes('&', s.replaceAll("%buff%", String.valueOf(finalAmountBuffed)).replaceAll("%duration%", String.valueOf(finalAmountBuffed)).replaceAll("%uses%", String.valueOf(finalUses)))).collect(Collectors.toList()));
+
+            clone.setItemMeta(itemMeta);
+
+            // refresh the item in the players inventory
+            e.getPlayer().getInventory().setItemInMainHand(clone);
             e.setCancelled(true);
-            // remove bottle if it has 0 uses left
         });
 
         new EventListener<>(RPGProject.getInstance(), EntityDamageEvent.class, (l, e) -> {
@@ -206,6 +241,10 @@ public class RPGPlayer {
             if (potionOptional.isEmpty())
                 return;
 
+            // check if the potion has its effects already determined
+            if (e.getItem().getItemStack().getItemMeta().getPersistentDataContainer().has(new NamespacedKey(RPGProject.getInstance(), "amount-buffed"), PersistentDataType.INTEGER))
+                return;
+
             int tier = 1;
             // if the item is tier 1, its name will contain T1, if its tier 2, it will contain T2, etc.
             if (e.getItem().getItemStack().getItemMeta().getDisplayName().contains("T2"))
@@ -218,8 +257,12 @@ public class RPGPlayer {
             int amountBuffed = ThreadLocalRandom.current().nextInt(RPGProject.getInstance().getConfig().getInt("potions." + potionOptional.get().getId() + ".tier-" + tier + ".min-buff"), RPGProject.getInstance().getConfig().getInt("potions." + potionOptional.get().getId() + ".tier-" + tier + ".max-buff") + 1);
 
             NamespacedKey usesKey = new NamespacedKey(RPGProject.getInstance(), "uses");
+            NamespacedKey amountBuffedKey = new NamespacedKey(RPGProject.getInstance(), "amount-buffed");
+            NamespacedKey tierKey = new NamespacedKey(RPGProject.getInstance(), "tier");
             ItemMeta itemMeta = e.getItem().getItemStack().getItemMeta();
             itemMeta.getPersistentDataContainer().set(usesKey, PersistentDataType.INTEGER, uses);
+            itemMeta.getPersistentDataContainer().set(amountBuffedKey, PersistentDataType.INTEGER, amountBuffed);
+            itemMeta.getPersistentDataContainer().set(tierKey, PersistentDataType.INTEGER, tier);
 
             if (potionOptional.get().getId().contains("progressive")) {
                 NamespacedKey durationKey = new NamespacedKey(RPGProject.getInstance(), "duration");
@@ -228,7 +271,59 @@ public class RPGPlayer {
                 itemMeta.getPersistentDataContainer().set(durationKey, PersistentDataType.INTEGER, duration);
             }
 
+            itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', RPGProject.getInstance().getConfig().getString("potions." + potionOptional.get().getId() + ".title").replaceAll("%buff%", String.valueOf(amountBuffed)).replaceAll("%duration%", String.valueOf(amountBuffed)).replaceAll("%uses%", String.valueOf(uses)).replaceAll("%tier%", String.valueOf(tier))));
+            int finalTier = tier;
+            itemMeta.setLore(RPGProject.getInstance().getConfig().getStringList("potions." + potionOptional.get().getId() + ".lore").stream().map(s -> ChatColor.translateAlternateColorCodes('&', s.replaceAll("%buff%", String.valueOf(amountBuffed)).replaceAll("%duration%", String.valueOf(amountBuffed)).replaceAll("%uses%", String.valueOf(uses)).replaceAll("%tier%", String.valueOf(finalTier)))).collect(Collectors.toList()));
+
             e.getItem().getItemStack().setItemMeta(itemMeta);
+        });
+
+        new EventListener<>(RPGProject.getInstance(), InventoryClickEvent.class, (l, e) -> {
+            if (e.getWhoClicked() != this.player) return;
+            if (e.getClickedInventory() == null) return;
+
+            System.out.println(e.getAction());
+            if (e.getAction() != InventoryAction.SWAP_WITH_CURSOR) return;
+
+            // check to make sure both potions are valid
+            if (e.getCursor().getItemMeta() == null || e.getCurrentItem().getItemMeta() == null) return;
+            if (!e.getCursor().getItemMeta().hasCustomModelData() || !e.getCurrentItem().getItemMeta().hasCustomModelData()) return;
+
+            Optional<Potion> cursorPotionOptional = PotionHandler.getInstance().getPotion(e.getCursor().getType(), e.getCursor().getItemMeta().getCustomModelData());
+            Optional<Potion> currentItemPotionOptional = PotionHandler.getInstance().getPotion(e.getCurrentItem().getType(), e.getCurrentItem().getItemMeta().getCustomModelData());
+
+            Optional<ProgressivePotion> cursorProgressivePotionOptional = PotionHandler.getInstance().getProgressivePotion(e.getCursor().getType(), e.getCursor().getItemMeta().getCustomModelData());
+            Optional<ProgressivePotion> currentItemProgressivePotionOptional = PotionHandler.getInstance().getProgressivePotion(e.getCurrentItem().getType(), e.getCurrentItem().getItemMeta().getCustomModelData());
+
+            // make sure they are both potions and that they are one type, either progressive or regular.
+            if ((cursorPotionOptional.isEmpty() && cursorProgressivePotionOptional.isEmpty()) || (currentItemPotionOptional.isEmpty() && currentItemProgressivePotionOptional.isEmpty())) return;
+
+            if (cursorPotionOptional.isPresent() && currentItemPotionOptional.isPresent()) {
+                if (!cursorPotionOptional.get().getId().equals(currentItemPotionOptional.get().getId())) return;
+
+                String potion1Name = cursorPotionOptional.get().getFormattedString();
+                String potion2Name = currentItemPotionOptional.get().getFormattedString();
+                
+
+
+                // create new regular potion bundle
+                ItemStack potionBundle = new ItemConstructor(Material.valueOf(RPGProject.getInstance().getConfig().getString("potions." + cursorPotionOptional.get().getId() + ".bundle-material")))
+                        .setCustomModelData(RPGProject.getInstance().getConfig().getInt("potions." + cursorPotionOptional.get().getId() + ".bundle-custom-model-data"))
+                        .setName(ChatColor.translateAlternateColorCodes('&', RPGProject.getInstance().getConfig().getString("potions." + cursorPotionOptional.get().getId() + ".bundle-title")))
+                        .setLore(RPGProject.getInstance().getConfig().getStringList("potions." + cursorPotionOptional.get().getId() + ".bundle-lore").stream().map(s -> {
+                            String colorCoded = ChatColor.translateAlternateColorCodes('&', s);
+
+                        }).collect(Collectors.toList()));
+
+                // remove both items, and add the new bundle
+                e.setCancelled(true);
+                e.getView().setCursor(null);
+                e.getInventory().setItem(e.getSlot(), potionBundle);
+            }
+            else if (currentItemProgressivePotionOptional.isPresent() && cursorProgressivePotionOptional.isPresent()) {
+                // create a new progressive potion bundle
+            }
+
         });
     }
 

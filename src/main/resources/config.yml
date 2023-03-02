@@ -5,11 +5,38 @@ mysql:
   password: "root"
   database: "rpgproject"
 
+progressive-potion-bundle-item:
+  material: "POTION"
+  custom-model-data: 1
+  title: "Progressive Potion Bundle"
+  lore:
+      - "A bundle of potions."
+      - "Right click to open."
+      - "Contains %potion-count% potions."
+      - "1. %potion-1%" # %potion-1% will be replaced with the name of the potion in the first slot, if it doesn't exist, the line will be removed.
+      - "2. %potion-2%"
+      - "3. %potion-3%"
+
 potions:
   health:
     type: health
     material: "POTION"
     custom-model-data: 2
+    formatted-name: "Health"
+    title: "Health Potion %tier%" # %tier% will be replaced with the tier of the potion
+    lore:
+      - "Heals you for %buff% health." # %buff% will be replaced with the buff of the potion
+      - "Has %uses% left." # %uses% will be replaced with the uses of the potion
+    bundle-material: "POTION"
+    bundle-custom-model-data: 2
+    bundle-title: "Health Potion Bundle"
+    bundle-lore:
+      - "A bundle of health potions."
+      - "Right click to open."
+      - "Contains %potion-count% health potions."
+      - "1. %potion-1%" # %potion-1% will be replaced with the name of the potion in the first slot, if it doesn't exist, it will show N/A.
+      - "2. %potion-2%"
+      - "3. %potion-3%"
     tier-1:
       min-buff: 6
       max-buff: 14
@@ -25,10 +52,27 @@ potions:
       max-buff: 150
       min-uses: 3
       max-uses: 10
-  overtime-health:
+  progressive-health:
     type: progressive-health
     material: "POTION" # the plugin looks for items with this material
     custom-model-data: 1 # and this custom model data
+    formatted-name: "Progressive Health"
+    title: "Progressive Health Potion %tier%" # %tier% will be replaced with the tier of the potion
+    lore:
+      - "Heals you for %buff% health over %duration%s." # %buff% will be replaced with the buff of the potion, %duration% will be replaced with the duration of the potion
+      - "Has %uses% left." # %uses% will be replaced with the uses of the potion
+
+    bundle-material: "POTION"
+    bundle-custom-model-data: 1
+    bundle-title: "Progressive Health Potion Bundle"
+    bundle-lore:
+      - "A bundle of potions."
+      - "Right click to open."
+      - "Contains %potion-count% potions."
+      - "1. %potion1% - %potion1-buff% (%potion1-duration%s)" # %potion-1% will be replaced with the name of the potion in the first slot, if it doesn't exist, the line will be removed.
+      - "2. %potion2% - %potion2-buff% (%potion2-duration%s)"
+      - "3. %potion3% - %potion3-buff% (%potion3-duration%s)"
+
     tier-1:
       min-duration: 3 # this is the duration in seconds of the buff
       max-duration: 3

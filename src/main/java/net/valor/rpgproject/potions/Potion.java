@@ -13,11 +13,13 @@ import net.valor.rpgproject.players.RPGPlayer;
 public abstract class Potion {
     protected final String type;
     protected final String id;
+    protected final String formattedString;
     protected final Material materialType;
     protected final int customModelData;
 
-    public Potion(String type, String id, Material materialType, int customModelData) {
+    public Potion(String type, String formattedString, String id, Material materialType, int customModelData) {
         this.type = type;
+        this.formattedString = formattedString;
         this.id = id;
         this.materialType = materialType;
         this.customModelData = customModelData;
@@ -31,6 +33,10 @@ public abstract class Potion {
         return id;
     }
 
+    public String getFormattedString() {
+        return formattedString;
+    }
+
     public Material getMaterialType() {
         return materialType;
     }
@@ -39,5 +45,5 @@ public abstract class Potion {
         return customModelData;
     }
 
-    abstract public void use(RPGPlayer player);
+    abstract public void use(RPGPlayer player, int buff);
 }

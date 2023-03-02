@@ -12,8 +12,8 @@ import net.valor.rpgproject.potions.ProgressivePotion;
 // TODO CONSIDER MAKING A PROGRESSIVEPOTION CLASS THAT EXTENDS POTION
 public class ProgressiveHealthPotion extends ProgressivePotion {
 
-    public ProgressiveHealthPotion(String id, Material materialType, int customModelData) {
-        super("progressive-health", id, materialType, customModelData);
+    public ProgressiveHealthPotion(String id, String formattedName, Material materialType, int customModelData) {
+        super("progressive-health", id, formattedName, materialType, customModelData);
     }
 
     public void use(RPGPlayer player, int duration, int totalhealth) {
