@@ -289,6 +289,12 @@ public class RPGPlayer {
             if (e.getCursor().getItemMeta() == null || e.getCurrentItem().getItemMeta() == null) return;
             if (!e.getCursor().getItemMeta().hasCustomModelData() || !e.getCurrentItem().getItemMeta().hasCustomModelData()) return;
 
+            // check for if one of the items is a potion bundle
+            if (e.getCursor().getItemMeta().getPersistentDataContainer().has(new NamespacedKey(RPGProject.getInstance(), "potion-1-amount-buffed"), PersistentDataType.INTEGER) || e.getCurrentItem().getItemMeta().getPersistentDataContainer().has(new NamespacedKey(RPGProject.getInstance(), "potion-1-amount-buffed"), PersistentDataType.INTEGER)) {
+                // TODO DO STUFF BECAUSE IT IS A BUNDLE
+                return;
+            }
+
             Optional<Potion> cursorPotionOptional = PotionHandler.getInstance().getPotion(e.getCursor().getType(), e.getCursor().getItemMeta().getCustomModelData());
             Optional<Potion> currentItemPotionOptional = PotionHandler.getInstance().getPotion(e.getCurrentItem().getType(), e.getCurrentItem().getItemMeta().getCustomModelData());
 
@@ -298,13 +304,24 @@ public class RPGPlayer {
             // make sure they are both potions and that they are one type, either progressive or regular.
             if ((cursorPotionOptional.isEmpty() && cursorProgressivePotionOptional.isEmpty()) || (currentItemPotionOptional.isEmpty() && currentItemProgressivePotionOptional.isEmpty())) return;
 
+            NamespacedKey amountBuffedKey = new NamespacedKey(RPGProject.getInstance(), "amount-buffed");
+            NamespacedKey usesKey = new NamespacedKey(RPGProject.getInstance(), "uses");
+            NamespacedKey durationKey = new NamespacedKey(RPGProject.getInstance(), "duration");
+
             if (cursorPotionOptional.isPresent() && currentItemPotionOptional.isPresent()) {
                 if (!cursorPotionOptional.get().getId().equals(currentItemPotionOptional.get().getId())) return;
 
                 String potion1Name = cursorPotionOptional.get().getFormattedString();
                 String potion2Name = currentItemPotionOptional.get().getFormattedString();
-                
 
+                PersistentDataContainer cursorContainer = e.getCursor().getItemMeta().getPersistentDataContainer();
+                PersistentDataContainer currentItemContainer = e.getCurrentItem().getItemMeta().getPersistentDataContainer();
+
+                // String potion3Name = currentItemPotionOptional.get().getFormattedString();
+                int potion1Buff = cursorContainer.get(amountBuffedKey, PersistentDataType.INTEGER);
+                int potion2Buff = currentItemContainer.get(amountBuffedKey, PersistentDataType.INTEGER);
+                int potion1Uses = cursorContainer.get(usesKey, PersistentDataType.INTEGER);
+                int potion2Uses = currentItemContainer.get(usesKey, PersistentDataType.INTEGER);
 
                 // create new regular potion bundle
                 ItemStack potionBundle = new ItemConstructor(Material.valueOf(RPGProject.getInstance().getConfig().getString("potions." + cursorPotionOptional.get().getId() + ".bundle-material")))
@@ -312,8 +329,28 @@ public class RPGPlayer {
                         .setName(ChatColor.translateAlternateColorCodes('&', RPGProject.getInstance().getConfig().getString("potions." + cursorPotionOptional.get().getId() + ".bundle-title")))
                         .setLore(RPGProject.getInstance().getConfig().getStringList("potions." + cursorPotionOptional.get().getId() + ".bundle-lore").stream().map(s -> {
                             String colorCoded = ChatColor.translateAlternateColorCodes('&', s);
+                            if (colorCoded.contains("potion-3")) return "";
 
+                            colorCoded = colorCoded.replaceAll("%potion-1%", potion1Name);
+                            colorCoded = colorCoded.replaceAll("%potion-2%", potion2Name);
+                            
+
+                            colorCoded = colorCoded.replaceAll("%potion-1-buff%", String.valueOf(potion1Buff));
+                            colorCoded = colorCoded.replaceAll("%potion-2-buff%", String.valueOf(potion2Buff));
+                            
+                            colorCoded = colorCoded.replaceAll("%potion-1-uses%", String.valueOf(potion1Uses));
+                            colorCoded = colorCoded.replaceAll("%potion-2-uses%", String.valueOf(potion2Uses));
+
+                            return colorCoded;
                         }).collect(Collectors.toList()));
+
+                PersistentDataContainer newContainer = potionBundle.getItemMeta().getPersistentDataContainer();
+                // set a amount buffed key for each potion in the bundle
+                newContainer.set(new NamespacedKey(RPGProject.getInstance(), "potion-1-amount-buffed"), PersistentDataType.INTEGER, potion1Buff);
+                newContainer.set(new NamespacedKey(RPGProject.getInstance(), "potion-2-amount-buffed"), PersistentDataType.INTEGER, potion2Buff);
+                // set a uses key for each potion in the bundle
+                newContainer.set(new NamespacedKey(RPGProject.getInstance(), "potion-1-uses"), PersistentDataType.INTEGER, potion1Uses);
+                newContainer.set(new NamespacedKey(RPGProject.getInstance(), "potion-2-uses"), PersistentDataType.INTEGER, potion2Uses);
 
                 // remove both items, and add the new bundle
                 e.setCancelled(true);
@@ -322,8 +359,61 @@ public class RPGPlayer {
             }
             else if (currentItemProgressivePotionOptional.isPresent() && cursorProgressivePotionOptional.isPresent()) {
                 // create a new progressive potion bundle
-            }
+                if (!cursorProgressivePotionOptional.get().getId().equals(currentItemProgressivePotionOptional.get().getId())) return;
 
+                String potion1Name = cursorProgressivePotionOptional.get().getFormattedString();
+                String potion2Name = currentItemProgressivePotionOptional.get().getFormattedString();
+
+                PersistentDataContainer cursorContainer = e.getCursor().getItemMeta().getPersistentDataContainer();
+                PersistentDataContainer currentItemContainer = e.getCurrentItem().getItemMeta().getPersistentDataContainer();
+
+                int potion1Buff = cursorContainer.get(amountBuffedKey, PersistentDataType.INTEGER);
+                int potion2Buff = currentItemContainer.get(amountBuffedKey, PersistentDataType.INTEGER);
+                int potion1Uses = cursorContainer.get(usesKey, PersistentDataType.INTEGER);
+                int potion2Uses = currentItemContainer.get(usesKey, PersistentDataType.INTEGER);
+                int potion1Duration = cursorContainer.get(durationKey, PersistentDataType.INTEGER);
+                int potion2Duration = currentItemContainer.get(durationKey, PersistentDataType.INTEGER);
+
+                // create new regular potion bundle
+                ItemStack potionBundle = new ItemConstructor(Material.valueOf(RPGProject.getInstance().getConfig().getString("potions." + cursorProgressivePotionOptional.get().getId() + ".bundle-material")))
+                        .setCustomModelData(RPGProject.getInstance().getConfig().getInt("potions." + cursorProgressivePotionOptional.get().getId() + ".bundle-custom-model-data"))
+                        .setName(ChatColor.translateAlternateColorCodes('&', RPGProject.getInstance().getConfig().getString("potions." + cursorProgressivePotionOptional.get().getId() + ".bundle-title")))
+                        .setLore(RPGProject.getInstance().getConfig().getStringList("potions." + cursorProgressivePotionOptional.get().getId() + ".bundle-lore").stream().map(s -> {
+                            String colorCoded = ChatColor.translateAlternateColorCodes('&', s);
+                            if (colorCoded.contains("potion-3")) return "";
+
+                            colorCoded = colorCoded.replaceAll("%potion-1%", potion1Name);
+                            colorCoded = colorCoded.replaceAll("%potion-2%", potion2Name);
+                            
+
+                            colorCoded = colorCoded.replaceAll("%potion-1-buff%", String.valueOf(potion1Buff));
+                            colorCoded = colorCoded.replaceAll("%potion-2-buff%", String.valueOf(potion2Buff));
+                            
+                            colorCoded = colorCoded.replaceAll("%potion-1-uses%", String.valueOf(potion1Uses));
+                            colorCoded = colorCoded.replaceAll("%potion-2-uses%", String.valueOf(potion2Uses));
+
+                            colorCoded = colorCoded.replaceAll("%potion-1-duration%", String.valueOf(potion1Duration));
+                            colorCoded = colorCoded.replaceAll("%potion-2-duration%", String.valueOf(potion2Duration));
+
+                            return colorCoded;
+                        }).collect(Collectors.toList()));
+
+                PersistentDataContainer newContainer = potionBundle.getItemMeta().getPersistentDataContainer();
+                // set a amount buffed key for each potion in the bundle
+                newContainer.set(new NamespacedKey(RPGProject.getInstance(), "potion-1-amount-buffed"), PersistentDataType.INTEGER, potion1Buff);
+                newContainer.set(new NamespacedKey(RPGProject.getInstance(), "potion-2-amount-buffed"), PersistentDataType.INTEGER, potion2Buff);
+                // set a uses key for each potion in the bundle
+                newContainer.set(new NamespacedKey(RPGProject.getInstance(), "potion-1-uses"), PersistentDataType.INTEGER, potion1Uses);
+                newContainer.set(new NamespacedKey(RPGProject.getInstance(), "potion-2-uses"), PersistentDataType.INTEGER, potion2Uses);
+
+                newContainer.set(new NamespacedKey(RPGProject.getInstance(), "potion-1-duration"), PersistentDataType.INTEGER, potion1Duration);
+                newContainer.set(new NamespacedKey(RPGProject.getInstance(), "potion-2-duration"), PersistentDataType.INTEGER, potion2Duration);
+
+                // remove both items, and add the new bundle
+                e.setCancelled(true);
+                e.getView().setCursor(null);
+                e.getInventory().setItem(e.getSlot(), potionBundle);
+            }
         });
     }
 

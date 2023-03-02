@@ -13,9 +13,9 @@ progressive-potion-bundle-item:
       - "A bundle of potions."
       - "Right click to open."
       - "Contains %potion-count% potions."
-      - "1. %potion-1%" # %potion-1% will be replaced with the name of the potion in the first slot, if it doesn't exist, the line will be removed.
-      - "2. %potion-2%"
-      - "3. %potion-3%"
+      - "1. %potion-1% +%potion-1-buff% (%potion-1-duration%s)" # %potion-1% will be replaced with the name of the potion in the first slot, if it doesn't exist, the line will be removed.
+      - "2. %potion-2% +%potion-2-buff% (%potion-2-duration%s)"
+      - "3. %potion-3% +%potion-2-buff% (%potion-3-duration%s)"
 
 potions:
   health:
@@ -34,9 +34,9 @@ potions:
       - "A bundle of health potions."
       - "Right click to open."
       - "Contains %potion-count% health potions."
-      - "1. %potion-1%" # %potion-1% will be replaced with the name of the potion in the first slot, if it doesn't exist, it will show N/A.
-      - "2. %potion-2%"
-      - "3. %potion-3%"
+      - "1. %potion-1% +%potion-1-buff% [%potion-1-uses%]" # %potion-1% will be replaced with the name of the potion in the first slot, if it doesn't exist, it will show N/A.
+      - "2. %potion-2% +%potion-2-buff% [%potion-2-uses%]" # %potion-2-buff% will be replaced with the buff of the potion in the second slot, if it doesn't exist, it will show N/A.
+      - "3. %potion-3% +%potion-3-buff% [%potion-3-uses%]" 
     tier-1:
       min-buff: 6
       max-buff: 14
