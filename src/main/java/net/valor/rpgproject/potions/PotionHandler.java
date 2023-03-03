@@ -49,4 +49,31 @@ public class PotionHandler {
 
         return instance;
     }
+
+    public boolean isItemPotion(ItemStack item) {
+        Optional<Potion> potion = getPotion(item.getType(), item.getItemMeta().getCustomModelData());
+        Optional<ProgressivePotion> progressivePotion = getProgressivePotion(item.getType(), item.getItemMeta().getCustomModelData());
+
+        return potion.isPresent() || progressivePotion.isPresent();
+    }
+
+    public boolean isPotionProgressive(ItemStack item) {
+        Optional<ProgressivePotion> progressivePotion = getProgressivePotion(item.getType(), item.getItemMeta().getCustomModelData());
+
+        return progressivePotion.isPresent();
+    }
+
+    public boolean isPotionRegular(ItemStack item) {
+        Optional<Potion> potion = getPotion(item.getType(), item.getItemMeta().getCustomModelData());
+
+        return potion.isPresent();
+    }
+
+    public boolean isPotionProgressive(Potion potion) {
+        return progressivePotions.contains(potion);
+    }
+
+    public boolean isPotionRegular(Potion potion) {
+        return potions.contains(potion);
+    }
 }

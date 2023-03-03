@@ -20,6 +20,10 @@ import java.io.File;
 public final class RPGProject extends JavaPlugin {
 
     private static RPGProject instance;
+    
+    public static void main(String[] args) {
+        System.out.println("Hello World!");
+    }
 
     @Override
     public void onEnable() {
