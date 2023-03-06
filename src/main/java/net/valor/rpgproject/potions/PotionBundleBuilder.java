@@ -1,6 +1,13 @@
 package net.valor.rpgproject.potions;
 
+import net.projektcontingency.titanium.items.ItemConstructor;
+import net.valor.rpgproject.RPGProject;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.stream.Collectors;
 
@@ -85,6 +92,8 @@ public class PotionBundleBuilder {
         newContainer.set(new NamespacedKey(RPGProject.getInstance(), "potion-1-uses"), PersistentDataType.INTEGER, potion1Uses);
         newContainer.set(new NamespacedKey(RPGProject.getInstance(), "potion-2-uses"), PersistentDataType.INTEGER, potion2Uses);
         if (potion3Uses != 0) newContainer.set(new NamespacedKey(RPGProject.getInstance(), "potion-3-uses"), PersistentDataType.INTEGER, potion3Uses);
+
+        return bundle;
     }
 
     public static PotionBundleBuilder fromItem(ItemStack item) {
