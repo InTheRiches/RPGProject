@@ -1,17 +1,12 @@
 package net.valor.rpgproject.players;
 
 import com.codingforcookies.armorequip.ArmorEquipEvent;
-import net.projektcontingency.titanium.items.ItemConstructor;
 import net.valor.rpgproject.RPGProject;
 import net.valor.rpgproject.armor.Armor;
 import net.valor.rpgproject.armor.ArmorLoader;
 import net.valor.rpgproject.players.classes.Class;
-import net.valor.rpgproject.potions.Potion;
-import net.valor.rpgproject.potions.PotionHandler;
-
-import net.valor.rpgproject.potions.ProgressivePotion;
+import net.valor.rpgproject.potions.*;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -19,14 +14,12 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
-import redempt.redlib.itemutils.ItemBuilder;
 import redempt.redlib.misc.EventListener;
 import redempt.redlib.misc.Task;
 
@@ -290,9 +283,43 @@ public class RPGPlayer {
             if (!e.getCursor().getItemMeta().hasCustomModelData() || !e.getCurrentItem().getItemMeta().hasCustomModelData()) return;
 
             // check for if one of the items is a potion bundle
-            if (e.getCursor().getItemMeta().getPersistentDataContainer().has(new NamespacedKey(RPGProject.getInstance(), "potion-1-amount-buffed"), PersistentDataType.INTEGER) || e.getCurrentItem().getItemMeta().getPersistentDataContainer().has(new NamespacedKey(RPGProject.getInstance(), "potion-1-amount-buffed"), PersistentDataType.INTEGER)) {
-                // TODO DO STUFF BECAUSE IT IS A BUNDLE
+            if (e.getCursor().getItemMeta().getPersistentDataContainer().has(new NamespacedKey(RPGProject.getInstance(), "potion-1-amount-buffed"), PersistentDataType.INTEGER)) {
+                if (!PotionHandler.getInstance().isItemPotion(e.getCurrentItem())) return;
+
+                Optional<Potion> potionOptional = PotionHandler.getInstance().getPotion(e.getCursor().getType(), e.getCursor().getItemMeta().getCustomModelData());
+                if (potionOptional.isEmpty()) {
+                    throw new IllegalStateException("Potion is not valid");
+                }
+
+                PotionBundleBuilder bundle = PotionBundleBuilder.fromItem(e.getCursor());
+                if (bundle.getSize() == 3) return;
+
+                bundle.addPotion(e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(RPGProject.getInstance(), "amount-buffed"), PersistentDataType.INTEGER), e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(RPGProject.getInstance(), "uses"), PersistentDataType.INTEGER), potionOptional.get());
+
+                e.setCancelled(true);
+                e.getView().setCursor(null);
+                e.setCurrentItem(bundle.build());
                 
+                return;
+            }
+            // TODO ADD PROGRESSIVE POTION BUNDLES
+            else if (e.getCurrentItem().getItemMeta().getPersistentDataContainer().has(new NamespacedKey(RPGProject.getInstance(), "potion-1-amount-buffed"), PersistentDataType.INTEGER)) {
+                if (!PotionHandler.getInstance().isItemPotion(e.getCursor())) return;
+
+                Optional<Potion> potionOptional = PotionHandler.getInstance().getPotion(e.getCursor().getType(), e.getCursor().getItemMeta().getCustomModelData());
+                if (potionOptional.isEmpty()) {
+                    throw new IllegalStateException("Potion is not valid");
+                }
+
+                PotionBundleBuilder bundle = PotionBundleBuilder.fromItem(e.getCurrentItem());
+                if (bundle.getSize() == 3) return;
+
+                bundle.addPotion(e.getCursor().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(RPGProject.getInstance(), "amount-buffed"), PersistentDataType.INTEGER), e.getCursor().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(RPGProject.getInstance(), "uses"), PersistentDataType.INTEGER), potionOptional.get());
+
+                e.setCancelled(true);
+                e.getView().setCursor(null);
+                e.setCurrentItem(bundle.build());
+
                 return;
             }
 
@@ -306,10 +333,10 @@ public class RPGPlayer {
             Potion currentItemPotion = PotionHandler.getInstance().getPotion(e.getCurrentItem().getType(), e.getCurrentItem().getItemMeta().getCustomModelData()).get();
 
             if (PotionHandler.getInstance().isPotionRegular(cursorPotion) && PotionHandler.getInstance().isPotionRegular(currentItemPotion)) {
-                if (!cursorPotion.get().getId().equals(currentItemPotion.getId())) return;
+                if (!cursorPotion.getId().equals(currentItemPotion.getId())) return;
 
-                String potion1Name = cursorPotion.get().getFormattedString();
-                String potion2Name = currentItemPotion.get().getFormattedString();
+                String potion1Name = cursorPotion.getFormattedString();
+                String potion2Name = currentItemPotion.getFormattedString();
 
                 PersistentDataContainer cursorContainer = e.getCursor().getItemMeta().getPersistentDataContainer();
                 PersistentDataContainer currentItemContainer = e.getCurrentItem().getItemMeta().getPersistentDataContainer();
@@ -321,12 +348,10 @@ public class RPGPlayer {
                 int potion2Uses = currentItemContainer.get(usesKey, PersistentDataType.INTEGER);
 
                 // create new regular potion bundle
-                ItemStack potionBundle = new PotionBundleBuilder(cursorPotion, currentItemPotion)
-                    .setPotion1AmountBuffed(potion1Buff)
-                    .setPotion2AmountBuffed(potion2Buff)
-                    .setPotion1Uses(potion1Uses)
-                    .setPotion2Uses(potion2Uses)
-                    .build();
+                ItemStack potionBundle = new PotionBundleBuilder()
+                        .addPotion(potion1Buff, potion1Uses, cursorPotion)
+                        .addPotion(potion2Buff, potion2Uses, currentItemPotion)
+                        .build();
 
                 // remove both items, and add the new bundle
                 e.setCancelled(true);
@@ -335,10 +360,10 @@ public class RPGPlayer {
             }
             else if (PotionHandler.getInstance().isPotionProgressive(cursorPotion) && PotionHandler.getInstance().isPotionProgressive(currentItemPotion)) {
                 // create a new progressive potion bundle
-                if (!cursorPotion.get().getId().equals(currentItemPotion.get().getId())) return;
+                if (!cursorPotion.getId().equals(currentItemPotion.getId())) return;
 
-                String potion1Name = cursorPotion.get().getFormattedString();
-                String potion2Name = currentItemPotion.get().getFormattedString();
+                String potion1Name = cursorPotion.getFormattedString();
+                String potion2Name = currentItemPotion.getFormattedString();
 
                 PersistentDataContainer cursorContainer = e.getCursor().getItemMeta().getPersistentDataContainer();
                 PersistentDataContainer currentItemContainer = e.getCurrentItem().getItemMeta().getPersistentDataContainer();
@@ -351,14 +376,14 @@ public class RPGPlayer {
                 int potion2Duration = currentItemContainer.get(durationKey, PersistentDataType.INTEGER);
 
                 // create new regular potion bundle
-                ItemStack potionBundle = new ProgressivePotionBundleBuilder(cursorPotion, currentItemPotion)
-                    .setPotion1AmountBuffed(potion1Buff)
-                    .setPotion2AmountBuffed(potion2Buff)
-                    .setPotion1Duration(potion1Duration)
-                    .setPotion2Duration(potion2Duration)
-                    .setPotion1Uses(potion1Uses)
-                    .setPotion2Uses(potion2Uses)
-                    .build();
+//                ItemStack potionBundle = new net.valor.rpgproject.potions.ProgressivePotionBundleBuilder(cursorPotion, currentItemPotion)
+//                    .setPotion1AmountBuffed(potion1Buff)
+//                    .setPotion2AmountBuffed(potion2Buff)
+//                    .setPotion1Duration(potion1Duration)
+//                    .setPotion2Duration(potion2Duration)
+//                    .setPotion1Uses(potion1Uses)
+//                    .setPotion2Uses(potion2Uses)
+//                    .build();
 
                 // remove both items, and add the new bundle
                 e.setCancelled(true);
