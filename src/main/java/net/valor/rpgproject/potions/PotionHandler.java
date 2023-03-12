@@ -6,6 +6,7 @@ import net.valor.rpgproject.potions.types.ProgressiveHealthPotion;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,10 @@ public class PotionHandler {
 
     public Optional<Potion> getPotion(Material material, int customModelData) {
         return potions.stream().filter(potion -> potion.getMaterialType() == material && potion.getCustomModelData() == customModelData).findFirst();
+    }
+
+    public Optional<Potion> getPotion(String id) {
+        return potions.stream().filter(potion -> potion.getId().equals(id)).findFirst();
     }
 
     public Optional<ProgressivePotion> getProgressivePotion(Material material, int customModelData) {
