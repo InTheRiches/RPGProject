@@ -7,8 +7,8 @@ package net.valor.rpgproject.potions;
 public class InstancedProgressivePotion extends InstancedPotion {
     private final int duration;
 
-    public InstancedProgressivePotion(int buff, int uses, int duration, Potion potion) {
-        super(buff, uses, potion);
+    public InstancedProgressivePotion(int buff, int uses, int duration, int tier, Potion potion) {
+        super(buff, uses, tier, potion);
 
         this.duration = duration;
     }

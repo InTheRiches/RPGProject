@@ -2,10 +2,12 @@ package net.valor.rpgproject.potions;
 
 import net.projektcontingency.titanium.items.ItemConstructor;
 import net.valor.rpgproject.RPGProject;
+import net.valor.rpgproject.players.RPGPlayer;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -47,12 +49,12 @@ public class PotionBundleBuilder {
                     potions[1] = potions[2];
                     potions[2] = null;
                 }
-                RPGProject.getLogger().severe("PotionBundleBuider.java#usePotion(RPGPRoject player): i is not 0. Report this immediately to the developer.")
+                RPGProject.getInstance().getLogger().severe("PotionBundleBuider.java#usePotion(RPGPRoject player): i is not 0. Report this immediately to the developer.");
             }
             return this;
         }
 
-        RPGProject.getLogger().severe("PotionBundleBuider.java#usePotion(RPGPRoject player): No potions were found. Report this immediately to the developer.");
+        RPGProject.getInstance().getLogger().severe("PotionBundleBuider.java#usePotion(RPGPRoject player): No potions were found. Report this immediately to the developer.");
         return this;
     }
 
@@ -78,9 +80,9 @@ public class PotionBundleBuilder {
             //     itemMeta.getPersistentDataContainer().set(durationKey, PersistentDataType.INTEGER, duration);
             // }
 
-            itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', RPGProject.getInstance().getConfig().getString("potions." + potions[0].getId() + ".title").replaceAll("%buff%", String.valueOf(potions[0].getBuff())).replaceAll("%uses%", String.valueOf(potions[0].getUses())).replaceAll("%tier%", String.valueOf(potions[0].getTier()))));
+            itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', RPGProject.getInstance().getConfig().getString("potions." + potions[0].getPotion().getId() + ".title").replaceAll("%buff%", String.valueOf(potions[0].getBuff())).replaceAll("%uses%", String.valueOf(potions[0].getUses())).replaceAll("%tier%", String.valueOf(potions[0].getTier()))));
             int finalTier = potions[0].getTier();
-            itemMeta.setLore(RPGProject.getInstance().getConfig().getStringList("potions." + potions[0].getId() + ".lore").stream().map(s -> ChatColor.translateAlternateColorCodes('&', s.replaceAll("%buff%", String.valueOf(potions[0].getBuff())).replaceAll("%uses%", String.valueOf(potions[0].getUses())).replaceAll("%tier%", String.valueOf(finalTier)))).collect(Collectors.toList()));
+            itemMeta.setLore(RPGProject.getInstance().getConfig().getStringList("potions." + potions[0].getPotion().getId() + ".lore").stream().map(s -> ChatColor.translateAlternateColorCodes('&', s.replaceAll("%buff%", String.valueOf(potions[0].getBuff())).replaceAll("%uses%", String.valueOf(potions[0].getUses())).replaceAll("%tier%", String.valueOf(finalTier)))).collect(Collectors.toList()));
 
             item.setItemMeta(itemMeta);
             return item;
@@ -136,37 +138,40 @@ public class PotionBundleBuilder {
         int buff = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-1-amount-buffed"), PersistentDataType.INTEGER);
         int uses = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-1-uses"), PersistentDataType.INTEGER);
         String id = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-1-id"), PersistentDataType.STRING);
+        int tier = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-1-tier"), PersistentDataType.INTEGER);
         Optional<Potion> potion = PotionHandler.getInstance().getPotion(id);
 
         if (potion.isEmpty()) {
             throw new IllegalArgumentException("Potion with id " + id + " does not exist! PotionBundleBuilder.fromItem()");
         }
 
-        builder.addPotion(buff, uses, potion.get());
+        builder.addPotion(buff, uses, tier, potion.get());
 
         int buff2 = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-2-amount-buffed"), PersistentDataType.INTEGER);
         int uses2 = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-2-uses"), PersistentDataType.INTEGER);
         String id2 = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-2-id"), PersistentDataType.STRING);
+        int tier2 = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-2-tier"), PersistentDataType.INTEGER);
         Optional<Potion> potion2 = PotionHandler.getInstance().getPotion(id2);
 
         if (potion2.isEmpty()) {
             throw new IllegalArgumentException("Potion with id " + id + " does not exist! PotionBundleBuilder.fromItem()");
         }
 
-        builder.addPotion(buff2, uses2, potion2.get());
+        builder.addPotion(buff2, uses2, tier2, potion2.get());
 
         if (!container.has(new NamespacedKey(RPGProject.getInstance(), "potion-3-id"), PersistentDataType.STRING)) return builder;
 
         int buff3 = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-3-amount-buffed"), PersistentDataType.INTEGER);
         int uses3 = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-3-uses"), PersistentDataType.INTEGER);
         String id3 = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-3-id"), PersistentDataType.STRING);
+        int tier3 = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-3-tier"), PersistentDataType.INTEGER);
         Optional<Potion> potion3 = PotionHandler.getInstance().getPotion(id3);
 
         if (potion3.isEmpty()) {
             throw new IllegalArgumentException("Potion with id " + id + " does not exist! PotionBundleBuilder.fromItem()");
         }
 
-        builder.addPotion(buff3, uses3, potion3.get());
+        builder.addPotion(buff3, uses3, tier3, potion3.get());
 
         return builder;
     }

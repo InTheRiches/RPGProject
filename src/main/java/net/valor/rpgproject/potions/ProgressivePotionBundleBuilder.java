@@ -19,13 +19,13 @@ public class ProgressivePotionBundleBuilder {
         this.potions = new InstancedProgressivePotion[2];
     }
 
-    public ProgressivePotionBundleBuilder addPotion(int buff, int uses, int duration, Potion potion) {
+    public ProgressivePotionBundleBuilder addPotion(int buff, int uses, int duration, int tier, Potion potion) {
         if (potions[0] == null) {
-            potions[0] = new InstancedProgressivePotion(buff, uses, duration, potion);
+            potions[0] = new InstancedProgressivePotion(buff, uses, duration, tier, potion);
         } else if (potions[1] == null) {
-            potions[1] = new InstancedProgressivePotion(buff, uses, duration, potion);
+            potions[1] = new InstancedProgressivePotion(buff, uses, duration, tier, potion);
         } else if (potions[2] == null) {
-            potions[2] = new InstancedProgressivePotion(buff, uses, duration, potion);
+            potions[2] = new InstancedProgressivePotion(buff, uses, duration, tier, potion);
         }
         return this;
     }
@@ -62,6 +62,10 @@ public class ProgressivePotionBundleBuilder {
                     colorCoded = colorCoded.replaceAll("%potion-2-duration%", String.valueOf(potions[1].getDuration()));
                     colorCoded = colorCoded.replaceAll("%potion-3-duration%", String.valueOf(potions[2].getDuration()));
 
+                    colorCoded = colorCoded.replaceAll("%potion-1-tier%", String.valueOf(potions[0].getTier()));
+                    colorCoded = colorCoded.replaceAll("%potion-2-tier%", String.valueOf(potions[1].getTier()));
+                    colorCoded = colorCoded.replaceAll("%potion-3-tier%", String.valueOf(potions[2].getTier()));
+
                     return colorCoded;
                 }).collect(Collectors.toList()));
 
@@ -83,6 +87,10 @@ public class ProgressivePotionBundleBuilder {
         newContainer.set(new NamespacedKey(RPGProject.getInstance(), "potion-2-duration"), PersistentDataType.INTEGER, potions[1].getDuration());
         if (potions[2] != null) newContainer.set(new NamespacedKey(RPGProject.getInstance(), "potion-3-duration"), PersistentDataType.INTEGER, potions[2].getDuration());
 
+        newContainer.set(new NamespacedKey(RPGProject.getInstance(), "potion-1-tier"), PersistentDataType.INTEGER, potions[0].getTier());
+        newContainer.set(new NamespacedKey(RPGProject.getInstance(), "potion-2-tier"), PersistentDataType.INTEGER, potions[1].getTier());
+        if (potions[2] != null) newContainer.set(new NamespacedKey(RPGProject.getInstance(), "potion-3-tier"), PersistentDataType.INTEGER, potions[2].getTier());
+
         return bundle;
     }
 
@@ -93,6 +101,7 @@ public class ProgressivePotionBundleBuilder {
         int buff = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-1-amount-buffed"), PersistentDataType.INTEGER);
         int uses = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-1-uses"), PersistentDataType.INTEGER);
         int duration = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-1-duration"), PersistentDataType.INTEGER);
+        int tier = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-1-tier"), PersistentDataType.INTEGER);
         String id = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-1-id"), PersistentDataType.STRING);
         Optional<Potion> potion = PotionHandler.getInstance().getPotion(id);
 
@@ -100,11 +109,12 @@ public class ProgressivePotionBundleBuilder {
             throw new IllegalArgumentException("Potion with id " + id + " does not exist! PotionBundleBuilder.fromItem()");
         }
 
-        builder.addPotion(buff, uses, duration, potion.get());
+        builder.addPotion(buff, uses, duration, tier, potion.get());
 
         int buff2 = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-2-amount-buffed"), PersistentDataType.INTEGER);
         int uses2 = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-2-uses"), PersistentDataType.INTEGER);
         int duration2 = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-2-duration"), PersistentDataType.INTEGER);
+        int tier2 = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-2-tier"), PersistentDataType.INTEGER);
         String id2 = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-2-id"), PersistentDataType.STRING);
         Optional<Potion> potion2 = PotionHandler.getInstance().getPotion(id2);
 
@@ -112,13 +122,14 @@ public class ProgressivePotionBundleBuilder {
             throw new IllegalArgumentException("Potion with id " + id + " does not exist! PotionBundleBuilder.fromItem()");
         }
 
-        builder.addPotion(buff2, uses2, duration2, potion2.get());
+        builder.addPotion(buff2, uses2, duration2, tier2, potion2.get());
 
         if (!container.has(new NamespacedKey(RPGProject.getInstance(), "potion-3-id"), PersistentDataType.STRING)) return builder;
 
         int buff3 = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-3-amount-buffed"), PersistentDataType.INTEGER);
         int uses3 = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-3-uses"), PersistentDataType.INTEGER);
         int duration3 = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-3-duration"), PersistentDataType.INTEGER);
+        int tier3 = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-3-tier"), PersistentDataType.INTEGER);
         String id3 = container.get(new NamespacedKey(RPGProject.getInstance(), "potion-3-id"), PersistentDataType.STRING);
         Optional<Potion> potion3 = PotionHandler.getInstance().getPotion(id3);
 
@@ -126,7 +137,7 @@ public class ProgressivePotionBundleBuilder {
             throw new IllegalArgumentException("Potion with id " + id + " does not exist! PotionBundleBuilder.fromItem()");
         }
 
-        builder.addPotion(buff3, uses3, duration3, potion3.get());
+        builder.addPotion(buff3, uses3, duration3, tier3, potion3.get());
 
         return builder;
     }
