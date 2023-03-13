@@ -72,14 +72,6 @@ public class PotionBundleBuilder {
             itemMeta.getPersistentDataContainer().set(amountBuffedKey, PersistentDataType.INTEGER, potions[0].getBuff());
             itemMeta.getPersistentDataContainer().set(tierKey, PersistentDataType.INTEGER, potions[0].getTier());
 
-            // TODO add this to the progressive potion bundle builder
-            // if (potionOptional.get().getId().contains("progressive")) {
-            //     NamespacedKey durationKey = new NamespacedKey(RPGProject.getInstance(), "duration");
-            //     int duration = ThreadLocalRandom.current().nextInt(RPGProject.getInstance().getConfig().getInt("potions." + potionOptional.get().getId() + ".tier-" + tier + ".min-duration"), RPGProject.getInstance().getConfig().getInt("potions." + potionOptional.get().getId() + ".tier-" + tier + ".max-duration") + 1);
-
-            //     itemMeta.getPersistentDataContainer().set(durationKey, PersistentDataType.INTEGER, duration);
-            // }
-
             itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', RPGProject.getInstance().getConfig().getString("potions." + potions[0].getPotion().getId() + ".title").replaceAll("%buff%", String.valueOf(potions[0].getBuff())).replaceAll("%uses%", String.valueOf(potions[0].getUses())).replaceAll("%tier%", String.valueOf(potions[0].getTier()))));
             int finalTier = potions[0].getTier();
             itemMeta.setLore(RPGProject.getInstance().getConfig().getStringList("potions." + potions[0].getPotion().getId() + ".lore").stream().map(s -> ChatColor.translateAlternateColorCodes('&', s.replaceAll("%buff%", String.valueOf(potions[0].getBuff())).replaceAll("%uses%", String.valueOf(potions[0].getUses())).replaceAll("%tier%", String.valueOf(finalTier)))).collect(Collectors.toList()));

@@ -135,6 +135,27 @@ public class RPGPlayer {
             if (!e.getItem().getItemMeta().hasCustomModelData())
                 return;
 
+            if (e.getItem().getItemMeta().getPersistentDataContainer().has(new NamespacedKey(RPGProject.getInstance(), "potion-1-amount-buffed"), PersistentDataType.INTEGER)) {
+                e.setCancelled(true);
+
+                if (e.getCurrentItem().getItemMeta().getPersistentDataContainer().has(new NamespacedKey(RPGProject.getInstance(), "potion-1-duration"), PersistentDataType.INTEGER)) {
+                    // its progressive
+                    ProgressivePotionBundleBuilder builder = PotionBundleBuilder.fromItem(e.getItem());
+
+                    builder.use(e.getPlayer());
+
+                    e.setItemInMainHand(builder.build());
+                    return;
+                }
+
+                // its not progressive
+                PotionBundleBuilder builder = PotionBundleBuilder.fromItem(e.getItem());
+
+                builder.use(e.getPlayer());
+                e.setItemInMainHand(builder.build());
+                return;
+            }
+
             Optional<Potion> potionOptional = PotionHandler.getInstance().getPotion(e.getItem().getType(), e.getItem().getItemMeta().getCustomModelData());
             Optional<ProgressivePotion> progressivePotionOptional = PotionHandler.getInstance().getProgressivePotion(e.getItem().getType(), e.getItem().getItemMeta().getCustomModelData());
             if (potionOptional.isEmpty() && progressivePotionOptional.isEmpty())
@@ -296,6 +317,8 @@ public class RPGPlayer {
 
                 bundle.addPotion(e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(RPGProject.getInstance(), "amount-buffed"), PersistentDataType.INTEGER), e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(RPGProject.getInstance(), "uses"), PersistentDataType.INTEGER), e.getCursor().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(RPGProject.getInstance(), "tier"), PersistentDataType.INTEGER), potionOptional.get());
 
+                e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ITEM_BUNDLE_INSERT, 1, 1);
+
                 e.setCancelled(true);
                 e.getView().setCursor(null);
                 e.setCurrentItem(bundle.build());
@@ -353,6 +376,8 @@ public class RPGPlayer {
                         .addPotion(potion2Buff, potion2Uses, potion2Tier, currentItemPotion)
                         .build();
 
+                e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ITEM_BUNDLE_INSERT, 1, 1);
+
                 // remove both items, and add the new bundle
                 e.setCancelled(true);
                 e.getView().setCursor(null);
@@ -379,6 +404,8 @@ public class RPGPlayer {
                         .addPotion(potion1Buff, potion1Uses, potion1Duration, potion1Tier, cursorPotion)
                         .addPotion(potion2Buff, potion2Uses, potion2Duration, potion2Tier, currentItemPotion)
                         .build();
+
+                e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ITEM_BUNDLE_INSERT, 1, 1);
 
                 // remove both items, and add the new bundle
                 e.setCancelled(true);

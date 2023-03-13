@@ -34,7 +34,51 @@ public class ProgressivePotionBundleBuilder {
         return potions.length;
     }
 
+    public ProgressivePotionBundleBuilder usePotion(RPGPlayer player) {
+        for (int i = 0; i < potions.length; i++) {
+            if (potions[i] == null)
+                continue;
+            
+            potions[i].use(player);
+            if (potions[i].getUses() <= 0) {
+                // if the first potion is null, then make the second the first, and third the second
+                if (i == 0) {
+                    potions[0] = potions[1];
+                    potions[1] = potions[2];
+                    potions[2] = null;
+                }
+                RPGProject.getInstance().getLogger().severe("ProgressivePotionBundleBuider.java#usePotion(RPGPRoject player): i is not 0. Report this immediately to the developer.");
+            }
+            return this;
+        }
+
+        RPGProject.getInstance().getLogger().severe("ProgressivePotionBundleBuider.java#usePotion(RPGPRoject player): No potions were found. Report this immediately to the developer.");
+        return this;
+    }
+
     public ItemStack build() {
+        if (potions[0] != null && potions[1] == null && potions[2] == null) {
+            ItemStack item = new ItemStack(potions[0].getPotion().getMaterialType());
+            ItemMeta itemMeta = item.getItemMeta();
+
+            NamespacedKey usesKey = new NamespacedKey(RPGProject.getInstance(), "uses");
+            NamespacedKey amountBuffedKey = new NamespacedKey(RPGProject.getInstance(), "amount-buffed");
+            NamespacedKey tierKey = new NamespacedKey(RPGProject.getInstance(), "tier");
+            NamespacedKey durationKey = new NamespacedKey(RPGProject.getInstance(), "duration");
+
+            itemMeta.getPersistentDataContainer().set(usesKey, PersistentDataType.INTEGER, potions[0].getUses());
+            itemMeta.getPersistentDataContainer().set(amountBuffedKey, PersistentDataType.INTEGER, potions[0].getBuff());
+            itemMeta.getPersistentDataContainer().set(tierKey, PersistentDataType.INTEGER, potions[0].getTier());
+            itemMeta.getPersistentDataContainer().set(durationKey, PersistentDataType.INTEGER, potions[0].getDuration());
+
+            itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', RPGProject.getInstance().getConfig().getString("potions." + potions[0].getPotion().getId() + ".title").replaceAll("%buff%", String.valueOf(potions[0].getBuff())).replaceAll("%uses%", String.valueOf(potions[0].getUses())).replaceAll("%tier%", String.valueOf(potions[0].getTier())).replaceAll("%duration%", potions[0].getDuration())));
+            int finalTier = potions[0].getTier();
+            itemMeta.setLore(RPGProject.getInstance().getConfig().getStringList("potions." + potions[0].getPotion().getId() + ".lore").stream().map(s -> ChatColor.translateAlternateColorCodes('&', s.replaceAll("%buff%", String.valueOf(potions[0].getBuff())).replaceAll("%uses%", String.valueOf(potions[0].getUses())).replaceAll("%tier%", String.valueOf(finalTier)).replaceAll("%duration%", potions[0].getDuration()))).collect(Collectors.toList()));
+
+            item.setItemMeta(itemMeta);
+            return item;
+        }
+
         String potion1Name = potions[0].getPotion().getFormattedString();
         String potion2Name = potions[1].getPotion().getFormattedString();
         String potion3Name = potions[2].getPotion().getFormattedString();
